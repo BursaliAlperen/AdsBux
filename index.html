@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdsBux – Robux Kazan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>AdsBux – Robux Kazan</h1>
+    <button id="loginBtn">Giriş Yap</button>
+    <button id="adminLoginBtn">Admin Panel</button>
+</header>
+
+<main>
+    <!-- Reklam İzle Paneli -->
+    <section id="adsSection" class="hidden">
+        <h2>Reklam İzle ve Robux Kazan</h2>
+        <div id="adContainer">
+            <div id="adBar"></div>
+        </div>
+        <button id="watchAdBtn">Reklam İzle</button>
+        <p>Robux: <span id="robuxCount">0</span></p>
+    </section>
+
+    <!-- Çekim Talebi Paneli -->
+    <section id="withdrawSection" class="hidden">
+        <h2>Çekim Talebi Oluştur</h2>
+        <input type="number" id="withdrawAmount" placeholder="Robux Miktarı (min 20)">
+        <input type="text" id="gamepassInput" placeholder="Gamepass Link/ID">
+        <button id="withdrawBtn">Talep Gönder</button>
+        <ul id="withdrawHistory"></ul>
+    </section>
+</main>
+
+<!-- Admin Paneli -->
+<div id="adminPanel" class="hidden">
+    <h2>Admin Paneli</h2>
+    <button id="closeAdmin">Kapat</button>
+    <h3>Çekim Talepleri</h3>
+    <ul id="adminRequests"></ul>
+</div>
+
+<!-- Firebase Modüler SDK ve Script -->
+<script type="module" src="script.js"></script>
+
+</body>
+</html>
