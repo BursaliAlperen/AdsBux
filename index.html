@@ -354,9 +354,12 @@
         import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-        // YENİ FIREBASE YAPILANDIRMASI
+        // ====================================================================
+        // !!! ÖNEMLİ BÖLÜM: BURAYI KENDİ FIREBASE ANAHTARLARINIZLA DEĞİŞTİRİN !!!
+        // ====================================================================
         const FIREBASE_CONFIG = {
-            apiKey: "AIzaSyA4hyg3BbR--b5c_ig01yr_OblTZP4TsDE",
+            // Lütfen bu anahtarı kendi Firebase API anahtarınızla değiştirin!
+            apiKey: "AIzaSyA4hyg3BbR--b5c_ig01yr_OblTZP4TsDE", 
             authDomain: "adsbux-73efc.firebaseapp.com",
             databaseURL: "https://adsbux-73efc-default-rtdb.firebaseio.com",
             projectId: "adsbux-73efc",
@@ -365,25 +368,25 @@
             appId: "1:396593744688:web:03d7020fa05c9296d396f5",
             measurementId: "G-SFXVSS6MRJ"
         };
-        const ADMIN_UIDS = ["YOUR_ADMIN_UID_1", "YOUR_ADMIN_UID_2"]; // Firebase Auth UID'leri
-        const AD_LIMIT = 75; // Günlük ödüllü reklam limiti
+        // Lütfen bu UID'leri kendi yönetici kullanıcılarınızın UID'leriyle değiştirin!
+        const ADMIN_UIDS = ["YOUR_ADMIN_UID_1", "YOUR_ADMIN_UID_2"]; 
         
-        // KAZANÇ VE ÇEKİM SABİTLERİ (Robux)
+        const AD_LIMIT = 75; 
         const EARNINGS_PER_AD_MIN_R$ = 0.10;
         const EARNINGS_PER_AD_MAX_R$ = 0.50;
         const REFERRAL_BONUS_R$ = 5.0; 
         const MIN_WITHDRAW_R$ = 100;
         const MAX_WITHDRAW_R$ = 1000;
-        const ROBLOX_FEE_PERCENTAGE = 0.30; // %30 Roblox Kesintisi
+        const ROBLOX_FEE_PERCENTAGE = 0.30; 
         
         const SECURITY_CONFIG = {
-            MAX_BALANCE_INCREASE_PER_MINUTE: 10, // R$
+            MAX_BALANCE_INCREASE_PER_MINUTE: 10, 
             MAX_ADS_PER_MINUTE: 5,
             SUSPICIOUS_ACTIVITY_LIMIT: 3,
             CHECK_INTERVAL: 60000
         };
 
-        const RESET_TIME_UTC_HOUR = 0; // Midnight UTC
+        const RESET_TIME_UTC_HOUR = 0; 
         const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
 
         let userUid = null;
@@ -421,8 +424,6 @@
             logEvent(analytics, 'new_user_registered', { uid: user.uid, method: 'google_redirect' });
         }
         
-        // **[HATA ÇÖZÜMÜ BÖLÜMÜ BAŞLANGIÇ]**
-
         // 1. Yönlendirme sonucunu kontrol eden fonksiyon
         const checkRedirectResult = async () => {
             try {
@@ -443,7 +444,6 @@
                 }
             } catch (error) {
                 console.error("Redirect Sign-in Error:", error);
-                // "missing initial state" hatası genellikle burada yakalanır
                 let errorMessage = "Oturum açma başarısız oldu. Lütfen uygulama önbelleğini temizleyip tekrar deneyin. (Kod: 101)";
                 if (error.code) {
                      errorMessage = `Oturum açma hatası: ${error.code}. Lütfen tekrar deneyin.`;
@@ -461,12 +461,8 @@
             
             const provider = new GoogleAuthProvider();
             try {
-                // Pop-up yerine tüm sayfayı kimlik doğrulama sağlayıcısına yönlendirir.
                 await signInWithRedirect(auth, provider); 
-                // Bu kod satırından sonra tarayıcı yönlendirileceği için başka bir kod çalışmaz.
-                
             } catch (error) {
-                // Eğer yönlendirme başlayamazsa
                 signInButton.disabled = false;
                 signInButton.innerHTML = '<i class="fab fa-google"></i> Sign in with Google';
                 customAlert("Google Giriş Başarısız: " + (error.message || "Bilinmeyen bir hata oluştu."));
@@ -474,8 +470,6 @@
             }
         }
         
-        // **[HATA ÇÖZÜMÜ BÖLÜMÜ BİTİŞ]**
-
         window.showSection = (sectionId) => {
              // Kullanıcı girişi yapılmadıysa menüyü gösterme
             if (!userUid && sectionId !== 'auth-screen') {
@@ -883,8 +877,6 @@
                 let userData = snapshot.val();
                 
                 if (!snapshot.exists()) {
-                    // Kullanıcı oturumu açıldı ama RTDB kaydı yoksa yeni kayıt oluştur.
-                    // Bu senaryo artık checkRedirectResult içinde ele alınmaktadır.
                     const user = auth.currentUser;
                     if (user && user.uid === userUid) {
                         setupNewUser(user);
@@ -896,8 +888,10 @@
                 const now = new Date().getTime();
                 const nextResetTime = getNextResetTime().getTime();
 
+                // Eğer şimdiki zaman, reset zamanından büyükse ve günlük reklam izlenmişse
                 if (now > nextResetTime && (userData.daily_ads_watched || 0) > 0) {
                      const lastResetCheckTime = new Date(userData.last_reset_check || 0).getTime();
+                     // Eğer son kontrol reset zamanından önceyse, resetle
                      if (lastResetCheckTime < nextResetTime) {
                          rtdbUpdate(userRef, {
                             daily_ads_watched: 0,
@@ -1394,10 +1388,8 @@ Join AdsBux now and grab your free Robux reward!
             }
         });
 
-        // **[initApp GÜNCELLEMESİ]**
         const initApp = async () => {
             setupEventListeners();
-            // Sayfa yüklendiğinde yönlendirme sonucunu kontrol eder.
             await checkRedirectResult(); 
         };
         
