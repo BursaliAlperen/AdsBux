@@ -1261,16 +1261,42 @@ Join AdsBux now and grab your free Robux reward!
 
         // Google Giriş Fonksiyonları
         const handleGoogleSignIn = async () => {
-            const provider = new GoogleAuthProvider();
+            const signInButton = document.getElementById('google-sign-in-btn');
+            // Butonu kilitle
+            signInButton.disabled = true;
+
             try {
-                // Giriş pop-up'ını göster
-                const result = await signInWithPopup(auth, provider);
-                // Giriş başarılı, onAuthStateChanged tetiklenecek
-                logEvent(analytics, 'login', { method: 'google' });
+                // HATA ÇÖZÜMÜ: Eğer Median WebView kullanılıyorsa Native Bridge metodu kullan.
+                if (window.median && window.median.auth && window.median.auth.loginWithGoogle) {
+                    
+                    // Median'ın yerel (native) Google Girişini kullan. 
+                    // Bu, Firebase'in 'missing initial state' hatasını çözer ve WebView'de stabil çalışır.
+                    await window.median.auth.loginWithGoogle();
+                    logEvent(analytics, 'login', { method: 'google_median_native' });
+
+                } else {
+                    // Standart tarayıcıda veya Median yoksa Firebase pop-up'ını kullan
+                    customAlert("Signing in via Firebase Pop-up...");
+                    const provider = new GoogleAuthProvider();
+                    await signInWithPopup(auth, provider);
+                    logEvent(analytics, 'login', { method: 'google_popup' });
+                }
+
             } catch (error) {
                 // Hata yönetimi
-                customAlert(`Google Sign-In Failed: ${error.message}`);
-                logEvent(analytics, 'login_failed', { method: 'google', error: error.code });
+                let errorMessage = error.message;
+                if (error.message.includes('missing initial state')) {
+                    // Median'ın kullanılmaması durumunda özel hata mesajı
+                    errorMessage = "Oturum durumu hatası! Lütfen uygulamanızı güncelleyin veya tekrar deneyin.";
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = "Giriş kullanıcı tarafından iptal edildi.";
+                }
+                
+                customAlert(`Google Giriş Başarısız: ${errorMessage}`);
+                logEvent(analytics, 'login_failed', { method: 'google', error_code: error.code || error.message.substring(0, 50) });
+            } finally {
+                // İşlem bitince butonu aç
+                signInButton.disabled = false;
             }
         };
 
