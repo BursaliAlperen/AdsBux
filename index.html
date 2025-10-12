@@ -1,50 +1,1323 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AdsBux – Robux Kazan</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AdsBux</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    
+    <style>
+        /* Yeşil-Beyaz-Mavi Tema (Roblox/Robux Teması) */
+        :root {
+            --font-family: 'Nunito', sans-serif;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #1c1c1e;
+            --subtle-text: #888;
+            --primary-color: #00a2ed; /* Roblox Mavisi */
+            --primary-color-hover: #0088cc;
+            --secondary-color: #1abc9c; /* Yeşil vurgu */
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #app { max-width: 500px; margin: 0 auto; padding-bottom: 80px; }
+
+        .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; background-color: var(--primary-color); color: white; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); }
+        .header h1 { font-size: 1.4rem; font-weight: 800; }
+        .header-stats { text-align: right; font-size: 0.9rem; }
+        .header-stats p strong { display: block; font-size: 1.1rem; }
+
+        main { padding: 15px; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        h2 { font-size: 1.6rem; margin-bottom: 20px; color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; }
+        
+        .card { padding: 20px; border-radius: var(--radius); background-color: var(--card-bg); box-shadow: var(--shadow); margin-bottom: 20px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        
+        .action-btn { width: 100%; padding: 15px; font-size: 1.1rem; font-weight: 700; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; display: flex; justify-content: center; align-items: center; background-color: var(--primary-color); }
+        .action-btn:active { transform: scale(0.98); }
+        .action-btn:hover { background-color: var(--primary-color-hover); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .action-btn.loading { background-color: #2ecc71; cursor: wait; pointer-events: none; } /* Yeşil yükleme */
+
+        .balance-card { text-align: center; border: 2px solid var(--primary-color); background-color: #e6f7ff; } /* Açık Mavi Arkaplan */
+        .balance-card .usd-value { font-size: 2.5rem; font-weight: 800; color: var(--primary-color); line-height: 1.2; }
+        .balance-card .trx-value { font-size: 1.2rem; color: var(--subtle-text); margin-top: 5px; }
+        
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+        .menu-tile { padding: 15px; border-radius: var(--radius); text-align: center; background-color: var(--card-bg); box-shadow: var(--shadow); cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+        .menu-tile i { font-size: 2rem; color: var(--primary-color); margin-bottom: 10px; }
+        .menu-tile span { font-size: 1rem; font-weight: 600; display: block; }
+        .menu-tile:hover { background-color: #f0f8ff; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.95rem; color: var(--text-color); }
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 1rem; border: 1px solid var(--border-color); transition: border-color 0.2s; }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary-color); outline: none; }
+        
+        .input-group { display: flex; margin-bottom: 15px; }
+        .input-group input { flex-grow: 1; padding: 12px; border-radius: 8px 0 0 8px; font-family: inherit; font-size: 1rem; border: 1px solid var(--border-color); border-right: none; background-color: var(--bg-color); }
+        .input-group button { padding: 10px 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 0 8px 8px 0; cursor: pointer; transition: background-color 0.2s; }
+        .input-group button:hover { background-color: var(--primary-color-hover); }
+
+        #user-search-input { border-radius: 8px; border-right: 1px solid var(--border-color); }
+        .input-group #user-search-input + button { border-radius: 0 8px 8px 0; }
+
+        .withdraw-note { font-size: 0.9rem; color: var(--subtle-text); margin-top: 10px; }
+        
+        #admin-panel .stat-display { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color); font-weight: 600; }
+        #admin-panel h3 { margin-top: 20px; color: var(--primary-color); }
+        #admin-panel ul { list-style: none; padding: 0; }
+        #admin-panel li { border: 1px solid var(--primary-color); border-radius: 8px; padding: 15px; margin-bottom: 10px; background-color: #f0f8ff; } /* Açık mavi */
+        #admin-panel li strong { color: var(--primary-color); }
+        #admin-panel li button { margin-top: 10px; margin-right: 5px; padding: 8px 12px; border-radius: 5px; font-weight: 700; cursor: pointer; }
+        #admin-panel .approve-btn { background-color: #1abc9c; color: white; border: none; } /* Yeşil onay */
+        #admin-panel .reject-btn { background-color: #e74c3c; color: white; border: none; } /* Kırmızı ret */
+        #admin-panel .orange-btn { background-color: #f39c12; color: white; border: none; }
+        #admin-panel .info-btn { background-color: #3498db; color: white; border: none; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; display: flex; justify-content: space-around; padding: 5px 0; background-color: var(--card-bg); border-top: 1px solid var(--border-color); box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05); z-index: 1000; }
+        .nav-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; padding: 5px 10px; font-family: var(--font-family); font-size: 0.75rem; transition: color 0.2s; flex-grow: 1; color: var(--subtle-text); }
+        .nav-btn i { font-size: 1.6rem; margin-bottom: 3px; }
+        .nav-btn.active { font-weight: 700; color: var(--primary-color); }
+
+        .user-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0; }
+        .stat-item { background: #e8f8ff; padding: 8px; border-radius: 5px; text-align: center; border: 1px solid #cceeff; } /* Açık mavi stat */
+        .stat-value { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; }
+
+        .scrollable-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .scrollable-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        /* Yeni Giriş Ekranı */
+        #auth-screen {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 50px;
+            border: 1px solid #ccc;
+            border-radius: var(--radius);
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow);
+        }
+        #auth-screen h2 {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            border-left: none;
+            padding-left: 0;
+        }
+        #google-sign-in-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        #google-sign-in-btn i {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
 
-<header>
-    <h1>AdsBux – Robux Kazan</h1>
-    <button id="loginBtn">Giriş Yap</button>
-    <button id="adminLoginBtn">Admin Panel</button>
-</header>
+    <div id="app">
+        <header class="header">
+            <div>
+                <h1>AdsBux</h1>
+                <p style="font-size:0.9rem;">The simplest way to earn Robux (R\$).</p>
+            </div>
+            <div class="header-stats">
+                <p>Logged in as:</p>
+                <p><strong><span id="current-username">Guest</span></strong></p>
+                <div id="admin-indicator" style="display:none; font-weight:bold; color:#f1c40f; margin-top:5px;">ADMIN MODE</div>
+            </div>
+        </header>
 
-<main>
-    <!-- Reklam İzle Paneli -->
-    <section id="adsSection" class="hidden">
-        <h2>Reklam İzle ve Robux Kazan</h2>
-        <div id="adContainer">
-            <div id="adBar"></div>
-        </div>
-        <button id="watchAdBtn">Reklam İzle</button>
-        <p>Robux: <span id="robuxCount">0</span></p>
-    </section>
+        <main id="main-content">
 
-    <!-- Çekim Talebi Paneli -->
-    <section id="withdrawSection" class="hidden">
-        <h2>Çekim Talebi Oluştur</h2>
-        <input type="number" id="withdrawAmount" placeholder="Robux Miktarı (min 20)">
-        <input type="text" id="gamepassInput" placeholder="Gamepass Link/ID">
-        <button id="withdrawBtn">Talep Gönder</button>
-        <ul id="withdrawHistory"></ul>
-    </section>
-</main>
+            <div id="auth-screen" class="page active">
+                <h2>Welcome to AdsBux</h2>
+                <p style="margin-bottom: 25px;">Please sign in with Google to start earning Robux!</p>
+                <button id="google-sign-in-btn">
+                    <i class="fab fa-google"></i> Sign in with Google
+                </button>
+            </div>
+            
+            <div id="banned-screen" class="page" style="text-align: center; padding: 40px; background-color: #ffebeb; border: 3px solid #e74c3c; margin-top: 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                <h2>ACCOUNT SUSPENDED</h2>
+                <p style="font-size: 1.1rem; color: #1c1c1e; margin-bottom: 20px;">Your access to AdsBux has been temporarily or permanently suspended.</p>
+                
+                <div class="card" style="background-color: #fff; border: 1px solid #f0f0f0;">
+                    <h3 style="color: #e74c3c; margin-bottom: 10px;">Reason for Suspension:</h3>
+                    <p id="ban-reason-display" style="font-weight: 700; font-size: 1rem; color: #333;">Loading reason...</p>
+                </div>
 
-<!-- Admin Paneli -->
-<div id="adminPanel" class="hidden">
-    <h2>Admin Paneli</h2>
-    <button id="closeAdmin">Kapat</button>
-    <h3>Çekim Talepleri</h3>
-    <ul id="adminRequests"></ul>
-</div>
+                <p style="margin-top: 25px; font-size: 0.9rem; color: #888;">Please contact support with your User ID (Displayed below).</p>
+                <p style="font-size: 0.8rem; font-weight: bold; color: #1c1c1e;">UID: <span id="banned-user-uid">N/A</span></p>
+            </div>
+            
+            <div id="admin-panel" class="page">
+                <h2><i class="fas fa-user-shield"></i> Admin Panel</h2>
+                
+                <div class="card">
+                    <h3>System Stats (RTDB)</h3>
+                    <div class="stat-display"><span>Total Users:</span> <strong id="admin-user-count">0</strong></div>
+                    <div class="stat-display"><span>Total User Balance (R\$):</span> <strong id="admin-total-balance">R\$ 0.00</strong></div>
+                    <div class="stat-display"><span>Total Ads Watched (System):</span> <strong id="admin-total-ads">0</strong></div>
+                    <div class="stat-display"><span>Total Referrals:</span> <strong id="admin-total-referrals">0</strong></div>
+                </div>
+                
+                <div class="card">
+                    <h3>User Management</h3>
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <input type="text" id="user-search-input" placeholder="Search by UID or Username">
+                        <button onclick="loadAllUsers(true)" style="border-radius: 8px;"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="user-uid-input" placeholder="User UID to ban">
+                        <button onclick="manualBanUser(document.getElementById('user-uid-input').value.trim())"><i class="fas fa-ban"></i> Ban User</button>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button onclick="loadAllUsers()" class="action-btn" style="padding: 10px;">
+                            <i class="fas fa-sync-alt"></i> Refresh All Users
+                        </button>
+                    </div>
+                </div>
 
-<!-- Firebase Modüler SDK ve Script -->
-<script type="module" src="script.js"></script>
+                <div class="card">
+                    <h3>All Users List (Scrollable)</h3>
+                    <div id="users-list-scrollable-container" class="scrollable-list">
+                        <ul id="users-list">
+                            <p style="color:var(--subtle-text);">Click refresh to load users...</p>
+                        </ul>
+                    </div>
+                </div>
 
+                <div class="card">
+                    <h3>Banned Users (Scrollable)</h3>
+                    <div id="banned-users-list-scrollable-container" class="scrollable-list">
+                        <ul id="banned-users-list">
+                            <p style="color:var(--subtle-text);">Loading banned users...</p>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top:25px;">Pending Robux Withdrawal Requests (Firestore - Scrollable)</h3>
+                <div class="card" style="margin-top: 10px;">
+                    <div id="withdrawal-list-scrollable-container" class="scrollable-list">
+                        <ul id="withdrawal-list">
+                            <p style="color:var(--subtle-text);">Loading requests...</p>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menu-page" class="page">
+                <h2><i class="fas fa-home"></i> Home & Earning</h2>
+                <div class="card balance-card">
+                    <p style="font-size:1.1rem; color:var(--subtle-text);">Your Current Balance (Robux R\$)</p>
+                    <div class="usd-value"><span id="menu-balance-robux">0.00</span> R\$</div>
+                    <div class="trx-value" style="color:var(--primary-color);">Keep Earning to Unlock Withdrawals!</div>
+                </div>
+                
+                <div class="card" style="text-align: center; border-left: 5px solid var(--primary-color);">
+                    <i class="fas fa-video" style="font-size:3rem; color: var(--secondary-color);"></i>
+                    <h3>Watch & Earn</h3>
+                    <p style="margin-bottom:15px;">You earn **0.10 - 0.50 R\$** per rewarded ad.</p>
+                    <button id="watch-ad-btn" class="action-btn">
+                        <i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad
+                    </button>
+                    <p class="withdraw-note" style="margin-top:10px;">Ads Watched Today: <strong id="daily-ads-watched">0</strong> / 75</p>
+                    <div id="cooldown-timer" style="font-weight: 700; color: #f39c12; margin-top: 10px; display:none;">
+                        Next 75 ads available in: <span id="timer-display">Loading...</span>
+                    </div>
+                </div>
+                
+                <div class="menu-grid" style="margin-top: 15px;">
+                    <div onclick="showSection('friends-page')" class="menu-tile">
+                        <i class="fas fa-users"></i>
+                        <span>Friends & Referrals</span>
+                    </div>
+                    <div onclick="showSection('withdraw-page')" class="menu-tile">
+                        <i class="fas fa-wallet"></i>
+                        <span>Withdraw Robux</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="friends-page" class="page">
+                <h2><i class="fas fa-user-friends"></i> Referral System</h2>
+                
+                <div class="card" style="text-align:center; border: 2px solid #1abc9c; background-color: #e6ffe6;">
+                    <p style="font-size:1rem; color:#1abc9c;">Total Referred Friends:</p>
+                    <div style="font-size:2.5rem; font-weight:800; color:#1abc9c; line-height:1.2;" id="referral-count-display">0</div>
+                </div>
+                
+                <div class="card">
+                    <p style="font-weight:700; color:var(--primary-color);">Referral Bonus: Get **5.0 R\$** for every successful friend!</p>
+                    
+                    <h3 style="font-size:1.2rem; margin-top:15px; margin-bottom:5px;">Your Referral Code (Share this!)</h3>
+                    <div class="input-group">
+                        <input type="text" id="referral-code-input" value="" placeholder="Loading..." readonly>
+                        <button onclick="copyToClipboard('referral-code-input')"><i class="fas fa-copy"></i> Copy Code</button>
+                    </div>
+                    
+                    <button id="share-ref-btn" class="action-btn" style="margin-top:0;"><i class="fas fa-share-alt" style="margin-right:10px;"></i> Share Promotional Text</button>
+
+                    <h3 style="font-size:1.2rem; margin-top:25px; margin-bottom:5px;">Enter Friend's Code</h3>
+                    <p class="withdraw-note">You can only use one code once.</p>
+                    <div class="input-group">
+                        <input type="text" id="enter-referrer-code" placeholder="Enter friend's Code (User ID)">
+                        <button onclick="applyReferralCode()"><i class="fas fa-arrow-right"></i> Apply</button>
+                    </div>
+                </div>
+                
+                </div>
+            
+            <div id="withdraw-page" class="page">
+                <h2><i class="fas fa-money-check-alt"></i> Withdraw Robux</h2>
+                <div class="card balance-card" style="margin-bottom: 20px;">
+                    <p style="font-size:0.9rem; color:var(--subtle-text);">Available Robux:</p>
+                    <div class="usd-value" style="font-size:2rem;"><span id="withdraw-balance-robux">0.00</span> R\$</div>
+                </div>
+                
+                <p style="font-weight:700;">Minimum withdrawal: **100 R\$**.<br>Maximum withdrawal: **1000 R\$**.</p>
+                <form id="withdraw-form" style="margin-top:15px;">
+                    <div class="form-group">
+                        <label for="gamepass-link"><i class="fas fa-link"></i> Roblox Game Pass Link/ID:</label>
+                        <input type="text" id="gamepass-link" placeholder="https://www.roblox.com/game-pass/..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount-robux"><i class="fas fa-coins"></i> Amount (R\$):</label>
+                        <input type="number" id="amount-robux" step="1" placeholder="e.g., 100" required>
+                    </div>
+                    <p class="withdraw-note">**IMPORTANT:** Robux transfers via Game Pass involve a 30% Roblox fee. You will receive **~<strong id="withdraw-net-robux">0</strong> R\$** after fee.</p>
+                    <button type="submit" id="withdraw-submit-btn" class="action-btn" style="margin-top:15px;">
+                        <i class="fas fa-paper-plane" style="margin-right:10px;"></i> Submit Withdrawal Request
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <nav class="bottom-nav" style="display:none;" id="bottom-nav">
+            <button class="nav-btn active" data-page="menu-page"><i class="fas fa-home"></i><span>Home</span></button>
+            <button class="nav-btn" data-page="friends-page"><i class="fas fa-users"></i><span>Friends</span></button>
+            <button class="nav-btn" data-page="withdraw-page"><i class="fas fa-wallet"></i><span>Withdraw</span></button>
+        </nav>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getDatabase, ref as rtdbRef, get as rtdbGet, set as rtdbSet, update as rtdbUpdate, onValue as rtdbOnValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // YENİ FIREBASE YAPILANDIRMASI (Kullanıcının sağladığı ile güncellendi)
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyA4hyg3BbR--b5c_ig01yr_OblTZP4TsDE",
+            authDomain: "adsbux-73efc.firebaseapp.com",
+            databaseURL: "https://adsbux-73efc-default-rtdb.firebaseio.com",
+            projectId: "adsbux-73efc",
+            storageBucket: "adsbux-73efc.firebasestorage.app",
+            messagingSenderId: "396593744688",
+            appId: "1:396593744688:web:03d7020fa05c9296d396f5",
+            measurementId: "G-SFXVSS6MRJ"
+        };
+        const ADMIN_UIDS = ["YOUR_ADMIN_UID_1", "YOUR_ADMIN_UID_2"]; // Firebase Auth UID'leri
+        const AD_LIMIT = 75; // Günlük ödüllü reklam limiti
+        
+        // KAZANÇ VE ÇEKİM SABİTLERİ (Robux)
+        const EARNINGS_PER_AD_MIN_R$ = 0.10;
+        const EARNINGS_PER_AD_MAX_R$ = 0.50;
+        const REFERRAL_BONUS_R$ = 5.0; 
+        const MIN_WITHDRAW_R$ = 100;
+        const MAX_WITHDRAW_R$ = 1000;
+        const ROBLOX_FEE_PERCENTAGE = 0.30; // %30 Roblox Kesintisi
+        
+        const SECURITY_CONFIG = {
+            MAX_BALANCE_INCREASE_PER_MINUTE: 10, // R$
+            MAX_ADS_PER_MINUTE: 5,
+            SUSPICIOUS_ACTIVITY_LIMIT: 3,
+            CHECK_INTERVAL: 60000
+        };
+
+        const RESET_TIME_UTC_HOUR = 0; // Midnight UTC
+        const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
+
+        let userUid = null;
+        let userName = null;
+        let userEmail = null;
+
+        const app = initializeApp(FIREBASE_CONFIG);
+        const auth = getAuth(app);
+        const rtdb = getDatabase(app);
+        const firestore = getFirestore(app);
+
+        // Genel alert fonksiyonu (Telegram WebApp alert yerine standart tarayıcı/mobil alert)
+        const customAlert = (message) => {
+            alert(message);
+        }
+
+        window.showSection = (sectionId) => {
+             // Kullanıcı girişi yapılmadıysa menüyü gösterme
+            if (!userUid && sectionId !== 'auth-screen') {
+                return;
+            }
+
+            document.querySelectorAll('.page').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.nav-btn[data-page="${sectionId}"]`)?.classList.add('active');
+
+            if (sectionId === 'menu-page') {
+                updateAdCooldown(); 
+            }
+
+            if (sectionId === 'admin-panel') {
+                loadAdminPanel();
+                loadBannedUsers(); 
+                loadAllUsers(); 
+            }
+        }
+
+        window.copyToClipboard = (elementId) => {
+            const copyText = document.getElementById(elementId);
+            const code = copyText.value;
+
+            navigator.clipboard.writeText(code).then(() => {
+                customAlert("Referral Code copied to clipboard! (Share your unique User ID)");
+            }).catch(err => {
+                 customAlert(`Failed to copy: ${err}`);
+            });
+        }
+        
+        async function checkUserBan() {
+            if (!userUid) return false;
+            
+            const bannedUserRef = rtdbRef(rtdb, 'banned_users/' + userUid); 
+            
+            const snapshot = await rtdbGet(bannedUserRef);
+            if (snapshot.exists()) {
+                const banData = snapshot.val();
+                const banReason = banData.reason || "Multiple security violations detected (Cheat System).";
+                
+                document.getElementById('ban-reason-display').textContent = banReason;
+                document.getElementById('banned-user-uid').textContent = userUid;
+                
+                document.getElementById('bottom-nav').style.display = 'none';
+                
+                document.querySelectorAll('.page').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById('banned-screen').classList.add('active');
+
+                customAlert(`Account suspended. Reason: ${banReason}`);
+                
+                return true;
+            }
+            return false;
+        }
+
+        async function autoBanUser(reason, uid, name) {
+            const banRef = rtdbRef(rtdb, 'banned_users/' + uid);
+            const activityRef = rtdbRef(rtdb, 'suspicious_activity/' + uid + '/' + Date.now());
+            
+            const banData = {
+                user_id: uid,
+                username: name,
+                reason: reason,
+                banned_at: serverTimestamp(),
+                banned_by: 'AUTO_SYSTEM'
+            };
+            
+            const activityData = {
+                user_id: uid,
+                username: name,
+                reason: reason,
+                detected_at: serverTimestamp(),
+                action_taken: 'AUTO_BANNED'
+            };
+            
+            await Promise.all([
+                rtdbSet(banRef, banData),
+                rtdbSet(activityRef, activityData)
+            ]);
+            
+            const userRef = rtdbRef(rtdb, 'users/' + uid);
+            await rtdbUpdate(userRef, {
+                balance_robux: 0,
+                daily_ads_watched: 0,
+                total_ads_watched: 0,
+                is_banned: true,
+                ban_reason: reason
+            });
+            
+            // Eğer banlanan kullanıcı biz isek uygulamadan çıkış yap
+            if (uid === userUid) {
+                 customAlert("Security violation detected. Your account has been suspended and you have been signed out.");
+                 await signOut(auth);
+            }
+        }
+
+        function detectSuspiciousActivity(userData, previousData) {
+            const suspiciousFlags = [];
+            
+            if (!previousData) return suspiciousFlags;
+            
+            const balanceIncrease = (userData.balance_robux || 0) - (previousData.balance_robux || 0);
+            if (balanceIncrease > SECURITY_CONFIG.MAX_BALANCE_INCREASE_PER_MINUTE) {
+                suspiciousFlags.push(`Abnormal balance increase: R$${balanceIncrease.toFixed(2)}`);
+            }
+            
+            const adsIncrease = (userData.daily_ads_watched || 0) - (previousData.daily_ads_watched || 0);
+            if (adsIncrease > SECURITY_CONFIG.MAX_ADS_PER_MINUTE) {
+                suspiciousFlags.push(`Abnormal ad speed: ${adsIncrease} ads/minute`);
+            }
+            
+            if (userData.balance_robux < 0) {
+                suspiciousFlags.push(`Negative balance: R$${userData.balance_robux.toFixed(2)}`);
+            }
+            
+            return suspiciousFlags;
+        }
+
+        function setupSecurityMonitor() {
+            if (!userUid) return;
+            
+            let previousUserData = null;
+            
+            const userRef = rtdbRef(rtdb, 'users/' + userUid);
+            rtdbOnValue(userRef, async (snapshot) => {
+                const currentData = snapshot.val();
+                if (!currentData || !previousUserData) {
+                    previousUserData = currentData;
+                    return;
+                }
+                
+                const suspiciousActivities = detectSuspiciousActivity(currentData, previousUserData);
+                
+                if (suspiciousActivities.length > 0) {
+                    const reason = suspiciousActivities.join(' | ');
+                    
+                    const suspicionCount = (currentData.suspicion_count || 0) + 1;
+                    await rtdbUpdate(userRef, { suspicion_count: suspicionCount });
+                    
+                    if (suspicionCount >= SECURITY_CONFIG.SUSPICIOUS_ACTIVITY_LIMIT) {
+                        await autoBanUser(`Multiple cheat detection: ${reason}`, userUid, userName); 
+                    }
+                }
+                
+                previousUserData = currentData;
+            });
+        }
+
+        // Admin fonksiyonları (Kaldırılan Telegram ID yerine UID ve Username kullanıldı)
+        function loadAllUsers() {
+            const usersRef = rtdbRef(rtdb, 'users');
+            const ul = document.getElementById('users-list');
+            const searchTerm = document.getElementById('user-search-input').value.trim().toLowerCase(); 
+
+            ul.innerHTML = '<p style="color:var(--subtle-text);">Loading users...</p>';
+            
+            rtdbOnValue(usersRef, (snapshot) => {
+                ul.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    ul.innerHTML = '<p style="color:green;">No users found.</p>';
+                    return;
+                }
+                
+                const users = [];
+                snapshot.forEach(userSnapshot => {
+                    const userData = userSnapshot.val();
+                    // Telegram ID kaldırıldı, yerine UID ve Username kullanıldı
+                    users.push({
+                        uid: userSnapshot.key,
+                        username: userData.username || 'N/A',
+                        balance_robux: userData.balance_robux || 0,
+                        daily_ads_watched: userData.daily_ads_watched || 0,
+                        total_ads_watched: userData.total_ads_watched || 0,
+                        referral_count: userData.referral_count || 0,
+                        created_at: userData.created_at
+                    });
+                });
+                
+                users.sort((a, b) => b.balance_robux - a.balance_robux);
+                
+                let filteredCount = 0;
+
+                users.forEach(user => {
+                    // FİLTRELEME MANTIĞI: UID veya Username'e göre arama
+                    const matchesSearch = searchTerm === '' || 
+                                          user.username.toLowerCase().includes(searchTerm) ||
+                                          user.uid.toLowerCase().includes(searchTerm);
+                    
+                    if (matchesSearch) {
+                        const li = document.createElement('li');
+                        li.style.padding = '10px';
+                        li.style.marginBottom = '8px';
+                        li.style.border = '1px solid #cceeff';
+                        li.style.borderRadius = '5px';
+                        li.style.backgroundColor = '#f0f8ff';
+                        
+                        li.innerHTML = `
+                            <p><strong>User:</strong> ${user.username}</p>
+                            <p><strong>UID:</strong> <code>${user.uid}</code></p>
+                            <div class="user-stats-grid">
+                                <div class="stat-item">
+                                    <div>Balance (R\$)</div>
+                                    <div class="stat-value">${user.balance_robux.toFixed(2)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Referrals</div>
+                                    <div class="stat-value">${user.referral_count}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Total Ads</div>
+                                    <div class="stat-value">${user.total_ads_watched}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Daily Ads</div>
+                                    <div class="stat-value">${user.daily_ads_watched}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 8px;">
+                                <button onclick="manualBanUser('${user.uid}', '${user.username}')" class="reject-btn" style="padding: 5px 8px; font-size: 0.8rem;">
+                                    <i class="fas fa-ban"></i> Ban User
+                                </button>
+                                <button onclick="viewUserDetails('${user.uid}')" class="approve-btn" style="padding: 5px 8px; font-size: 0.8rem; margin-left: 5px;">
+                                    <i class="fas fa-info"></i> Details
+                                </button>
+                            </div>
+                        `;
+                        ul.appendChild(li);
+                        filteredCount++;
+                    }
+                });
+
+                if (filteredCount === 0) {
+                    ul.innerHTML = '<p style="color:var(--primary-color);">No users found matching the criteria.</p>';
+                }
+            });
+        }
+
+        window.manualBanUser = (uid, username = 'Unknown') => {
+            if (!uid) {
+                return customAlert("Invalid User UID.");
+            }
+            
+            const banRef = rtdbRef(rtdb, 'banned_users/' + uid);
+            rtdbSet(banRef, {
+                user_id: uid,
+                username: username,
+                banned_at: serverTimestamp(),
+                banned_by: 'Admin Manual Ban',
+                reason: "Manual ban by admin"
+            }).then(() => {
+                customAlert(`User ${username} (UID: ${uid}) banned successfully.`);
+                loadBannedUsers();
+            });
+        };
+
+        window.manualUnbanUserByKey = async (userKey) => {
+            const banRef = rtdbRef(rtdb, 'banned_users/' + userKey);
+            await rtdbSet(banRef, null);
+            customAlert("User unbanned successfully.");
+            loadBannedUsers();
+        };
+
+        window.viewUserDetails = (userId) => {
+             const userRef = rtdbRef(rtdb, 'users/' + userId);
+            rtdbGet(userRef).then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    let details = `📊 User Details:\n\n`;
+                    details += `👤 Username: ${userData.username || 'N/A'}\n`;
+                    details += `🆔 UID: ${userId}\n`;
+                    details += `💰 Balance: R$${userData.balance_robux?.toFixed(2) || '0'}\n`;
+                    details += `📈 Total Ads: ${userData.total_ads_watched || '0'}\n`;
+                    details += `📅 Daily Ads: ${userData.daily_ads_watched || '0'}\n`;
+                    details += `👥 Referrals: ${userData.referral_count || '0'}\n`;
+                    details += `🤝 Referred by: ${userData.referred_by || 'None'}\n`;
+                    details += `🕒 Created: ${userData.created_at ? new Date(userData.created_at).toLocaleString() : 'Unknown'}`;
+                    
+                    customAlert(details);
+                }
+            });
+        };
+
+        function loadBannedUsers() {
+             const bannedRef = rtdbRef(rtdb, 'banned_users');
+            const ul = document.getElementById('banned-users-list');
+            ul.innerHTML = '';
+            
+            rtdbOnValue(bannedRef, (snapshot) => {
+                ul.innerHTML = '';
+
+                if (!snapshot.exists()) {
+                    ul.innerHTML = '<p style="color:green;">No banned users.</p>';
+                    return;
+                }
+                
+                snapshot.forEach(userSnapshot => {
+                    const banData = userSnapshot.val();
+                    const li = document.createElement('li');
+                    li.style.backgroundColor = '#f9e8e8'; 
+                    li.style.border = '1px solid #e74c3c';
+
+                    li.innerHTML = `
+                        <p><strong>Username:</strong> ${banData.username || 'Unknown'}</p>
+                        <p><strong>UID:</strong> ${banData.user_id}</p>
+                        <p><strong>Reason:</strong> ${banData.reason}</p>
+                        <p><strong>Banned by:</strong> ${banData.banned_by}</p>
+                        <p><strong>Date:</strong> ${new Date(banData.banned_at).toLocaleString()}</p>
+                        <button onclick="manualUnbanUserByKey('${userSnapshot.key}')" class="approve-btn" style="background-color:#1abc9c;">Unban</button>
+                    `;
+                    ul.appendChild(li);
+                });
+            });
+        }
+        
+        let adCooldownInterval = null;
+        
+        function getNextResetTime() {
+            const now = new Date();
+            const todayReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), RESET_TIME_UTC_HOUR, 0, 0, 0));
+            
+            if (now.getTime() >= todayReset.getTime()) {
+                const tomorrowReset = new Date(todayReset.getTime() + MILLISECONDS_IN_DAY);
+                return tomorrowReset;
+            }
+            return todayReset;
+        }
+
+        function updateAdCooldown() {
+            if (!userUid) return;
+
+            const watchAdBtn = document.getElementById('watch-ad-btn');
+            const timerDisplay = document.getElementById('timer-display');
+            const cooldownDiv = document.getElementById('cooldown-timer');
+            
+            const userRef = rtdbRef(rtdb, 'users/' + userUid);
+            rtdbGet(userRef).then((snapshot) => {
+                const userData = snapshot.val();
+                let adsWatched = userData?.daily_ads_watched || 0;
+                
+                if (adsWatched < AD_LIMIT) {
+                    cooldownDiv.style.display = 'none';
+                    watchAdBtn.disabled = false;
+                    watchAdBtn.innerHTML = '<i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad';
+                    clearInterval(adCooldownInterval);
+                    return;
+                }
+                
+                const nextReset = getNextResetTime();
+                
+                cooldownDiv.style.display = 'block';
+                
+                watchAdBtn.disabled = true; 
+                watchAdBtn.classList.remove('loading');
+                watchAdBtn.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right:10px;"></i> Daily Limit Reached'; 
+
+                if (adCooldownInterval) {
+                    clearInterval(adCooldownInterval);
+                }
+                
+                adCooldownInterval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = nextReset.getTime() - now;
+                    
+                    if (distance < 0) {
+                        clearInterval(adCooldownInterval);
+                        timerDisplay.textContent = "Resetting now...";
+                        rtdbUpdate(userRef, { last_reset_check: serverTimestamp() });
+                        updateAdCooldown();
+                        return;
+                    }
+                    
+                    const hours = Math.floor((distance % MILLISECONDS_IN_DAY) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    timerDisplay.textContent = `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+                }, 1000);
+
+            });
+        }
+        
+        function setupUserListener() {
+            if (!userUid) return;
+            
+            const userRef = rtdbRef(rtdb, 'users/' + userUid); 
+            
+            rtdbOnValue(userRef, (snapshot) => {
+                let userData = snapshot.val();
+                
+                if (!snapshot.exists()) {
+                    // Kullanıcı oturumu açıldı ama RTDB kaydı yoksa yeni kayıt oluştur.
+                    const newUser = {
+                        uid: userUid,
+                        username: userName,
+                        email: userEmail,
+                        balance_robux: 0.0,
+                        daily_ads_watched: 0,
+                        total_ads_watched: 0,
+                        referral_count: 0,
+                        referred_by: null,
+                        created_at: serverTimestamp(),
+                        last_reset_check: serverTimestamp()
+                    };
+                    rtdbSet(userRef, newUser);
+                    userData = newUser; 
+                }
+
+                // Daily Ads Reset Logic
+                const now = new Date().getTime();
+                const nextResetTime = getNextResetTime().getTime();
+
+                if (now > nextResetTime && (userData.daily_ads_watched || 0) > 0) {
+                     const lastResetCheckTime = new Date(userData.last_reset_check || 0).getTime();
+                     if (lastResetCheckTime < nextResetTime) {
+                         rtdbUpdate(userRef, {
+                            daily_ads_watched: 0,
+                            last_reset_check: serverTimestamp() 
+                         });
+                         userData.daily_ads_watched = 0;
+                     }
+                }
+
+                const balanceRobux = userData.balance_robux || 0.0;
+                const dailyWatched = userData.daily_ads_watched || 0;
+                const referralCount = userData.referral_count || 0;
+
+                document.getElementById('menu-balance-robux').textContent = balanceRobux.toFixed(2);
+                document.getElementById('withdraw-balance-robux').textContent = balanceRobux.toFixed(2);
+                document.getElementById('daily-ads-watched').textContent = dailyWatched;
+                
+                document.getElementById('referral-count-display').textContent = referralCount;
+
+                // Kullanıcı kendi UID'sini referans kodu olarak kullanacak
+                document.getElementById('referral-code-input').value = userUid; 
+
+                if (userData.referred_by) {
+                    document.getElementById('enter-referrer-code').disabled = true;
+                    document.getElementById('enter-referrer-code').placeholder = `Already referred by: ${userData.referred_by}`;
+                    document.querySelector('#friends-page .input-group button').disabled = true;
+                }
+
+                updateAdCooldown();
+            });
+        }
+        
+        // Ödül verme ve sayaçları artırma mantığı (Robux)
+        const handleRewardAndIncrement = async (userRef) => {
+            const reward = (Math.random() * (EARNINGS_PER_AD_MAX_R$ - EARNINGS_PER_AD_MIN_R$) + EARNINGS_PER_AD_MIN_R$).toFixed(2);
+            const rewardFloat = parseFloat(reward);
+
+            const snapshotAfterAd = await rtdbGet(userRef);
+            const currentData = snapshotAfterAd.val();
+            let newAdsWatched = (currentData.daily_ads_watched || 0) + 1;
+            let newTotalAdsWatched = (currentData.total_ads_watched || 0) + 1;
+            const newBalance = (currentData.balance_robux || 0.0) + rewardFloat;
+
+            await rtdbUpdate(userRef, {
+                balance_robux: newBalance,
+                daily_ads_watched: newAdsWatched,
+                total_ads_watched: newTotalAdsWatched,
+                last_ad_viewed: serverTimestamp()
+            });
+            
+            customAlert(`Success! You earned R$${reward} Robux.`);
+            return reward; // Kazanılan miktarı döndür
+        }
+        
+        // Reklam İzleme Fonksiyonu (Adexora kaldırıldı)
+        const handleWatchAd = () => {
+            const watchAdBtn = document.getElementById('watch-ad-btn');
+            const userRef = rtdbRef(rtdb, 'users/' + userUid);
+            
+            rtdbGet(userRef).then((snapshot) => {
+                const userData = snapshot.val();
+                let adsWatched = userData?.daily_ads_watched || 0;
+
+                if (adsWatched >= AD_LIMIT) {
+                     watchAdBtn.disabled = true; 
+                     watchAdBtn.classList.remove('loading');
+                     watchAdBtn.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right:10px;"></i> Daily Limit Reached';
+                     customAlert(`Daily ad limit (${AD_LIMIT}) has been reached.`);
+                     updateAdCooldown();
+                     return; 
+                }
+                
+                watchAdBtn.disabled = true;
+                watchAdBtn.classList.add('loading');
+                watchAdBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:10px;"></i> Showing Ad...';
+
+                // Simüle edilmiş reklam gösterimi (Gerçekte bir reklam SDK'sı burada çalışır)
+                setTimeout(() => {
+                    handleRewardAndIncrement(userRef) // Ödül ve sayaç artışı
+                    .catch(e => {
+                        customAlert(`Error during reward process: ${e.message}`);
+                    })
+                    .finally(() => {
+                        watchAdBtn.disabled = false;
+                        watchAdBtn.classList.remove('loading');
+                        watchAdBtn.innerHTML = '<i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad';
+                        updateAdCooldown();
+                    });
+                }, 3000); // 3 saniye reklam izleme simülasyonu
+
+            }).catch(e => {
+                customAlert(`Error fetching user data: ${e.message}`);
+                watchAdBtn.disabled = false;
+                watchAdBtn.classList.remove('loading');
+                watchAdBtn.innerHTML = '<i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad';
+            });
+        }
+
+
+        const handleShareReferral = () => {
+            const userCode = document.getElementById('referral-code-input').value;
+            const shareText = 
+`💰 AdsBux - FREE ROBUX! 🚀
+
+I'm earning free Robux (R\$) every day just by watching short ads! 
+
+🔥 **REFERRAL BONUS:** Join using my code **${userCode}** and start earning. When you invite friends, you get a bonus **${REFERRAL_BONUS_R$.toFixed(2)} R\$** for each successful referral!
+
+✅ **MINIMUM WITHDRAWAL:** Only ${MIN_WITHDRAW_R$}. Fast & Easy Game Pass Transfers!
+
+Join AdsBux now and grab your free Robux reward!
+#Roblox #Robux #FreeRobux #AdsBux`;
+            
+            if (navigator.share) {
+                navigator.share({ 
+                    title: 'AdsBux - Free Robux!', 
+                    text: shareText 
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    customAlert("Promotional text copied to clipboard! Share it with your friends!");
+                });
+            }
+        }
+
+        window.applyReferralCode = () => {
+            const referrerCode = document.getElementById('enter-referrer-code').value.trim();
+            const userRef = rtdbRef(rtdb, 'users/' + userUid);
+
+            if (!referrerCode) return customAlert("Please enter a referral code.");
+            if (referrerCode === userUid) return customAlert("You cannot refer yourself.");
+
+            rtdbGet(userRef).then((snapshot) => {
+                if (snapshot.val()?.referred_by) {
+                    return customAlert("You have already used a referral code.");
+                }
+                
+                const referrerRef = rtdbRef(rtdb, 'users/' + referrerCode);
+
+                rtdbGet(referrerRef).then(rSnapshot => {
+                    if (!rSnapshot.exists()) return customAlert("Invalid referral code. User not found.");
+                    
+                    const rData = rSnapshot.val();
+                    const newReferrerBalance = (rData.balance_robux || 0.0) + REFERRAL_BONUS_R$;
+                    const newReferralCount = (rData.referral_count || 0) + 1;
+                    
+                    rtdbUpdate(referrerRef, {
+                        balance_robux: newReferrerBalance,
+                        referral_count: newReferralCount
+                    });
+
+                    rtdbUpdate(userRef, {
+                        referred_by: referrerCode,
+                        referral_applied_at: serverTimestamp() 
+                    }).then(() => {
+                        customAlert(`Referral code applied successfully! Your referrer received R$${REFERRAL_BONUS_R$.toFixed(2)} Robux.`);
+                        document.getElementById('enter-referrer-code').value = '';
+                    });
+                });
+            });
+        }
+
+        const handleWithdrawSubmit = (e) => {
+            e.preventDefault();
+            const withdrawSubmitBtn = document.getElementById('withdraw-submit-btn');
+            
+            if (!userUid || !userName) {
+                return customAlert("Withdrawal failed: User session not loaded. Please re-sign in.");
+            }
+
+            const userRef = rtdbRef(rtdb, 'users/' + userUid);
+            const gamePassLink = document.getElementById('gamepass-link').value.trim();
+            const amountInRobux = parseInt(document.getElementById('amount-robux').value);
+            
+            if (!gamePassLink || gamePassLink.length < 10) {
+                return customAlert("Please enter a valid Roblox Game Pass Link/ID.");
+            }
+            if (isNaN(amountInRobux) || amountInRobux <= 0) {
+                return customAlert("Please enter a valid Robux amount.");
+            }
+            
+            if (amountInRobux < MIN_WITHDRAW_R$) {
+                return customAlert(`Withdrawal failed: Minimum withdrawal is ${MIN_WITHDRAW_R$} R$.`);
+            }
+
+            if (amountInRobux > MAX_WITHDRAW_R$) {
+                return customAlert(`Withdrawal failed: Maximum withdrawal is ${MAX_WITHDRAW_R$} R$.`);
+            }
+            
+            const netRobuxReceived = amountInRobux * (1 - ROBLOX_FEE_PERCENTAGE);
+
+            withdrawSubmitBtn.disabled = true;
+
+            rtdbGet(userRef).then(snapshot => {
+                const userData = snapshot.val();
+                
+                if (!userData) {
+                    throw new Error("User data is missing on Firebase.");
+                }
+                
+                const robuxBalance = userData.balance_robux || 0.0;
+                
+                if (amountInRobux > robuxBalance) {
+                    withdrawSubmitBtn.disabled = false;
+                    return customAlert(`Withdrawal failed: Insufficient balance. Available R$: ${robuxBalance.toFixed(2)}`);
+                }
+
+                const newRobuxBalance = robuxBalance - amountInRobux;
+
+                const requestsCollection = collection(firestore, "withdrawal_requests");
+                
+                return addDoc(requestsCollection, {
+                    user_id: userUid,
+                    username: userName,
+                    gamepass_link: gamePassLink,
+                    amount_requested_robux: amountInRobux,
+                    amount_net_robux: netRobuxReceived.toFixed(0),
+                    status: "Pending", 
+                    timestamp: serverTimestamp()
+                }).then(() => {
+                    return rtdbUpdate(userRef, { balance_robux: newRobuxBalance });
+                });
+                
+            }).then(() => {
+                customAlert(`Withdrawal request for ${amountInRobux} R\$ submitted successfully. Your request is now pending admin approval.`);
+                document.getElementById('amount-robux').value = '';
+                document.getElementById('withdraw-net-robux').textContent = '0';
+            }).catch(e => {
+                customAlert(`Withdrawal failed: ${e.message}`);
+            }).finally(() => {
+                withdrawSubmitBtn.disabled = false;
+            });
+        }
+
+        // Admin paneldeki istatistik ve çekim listesi güncellendi
+        function loadAdminPanel() {
+            if (!ADMIN_UIDS.includes(userUid)) {
+                return;
+            }
+            
+            const usersRef = rtdbRef(rtdb, 'users');
+            rtdbOnValue(usersRef, (snapshot) => {
+                let totalBalance = 0.0;
+                let userCount = 0;
+                let totalAds = 0;
+                let totalReferrals = 0; 
+
+                snapshot.forEach(userSnapshot => {
+                    const userData = userSnapshot.val();
+                    totalBalance += userData.balance_robux || 0.0;
+                    userCount++;
+                    totalAds += userData.total_ads_watched || 0;
+                    totalReferrals += userData.referral_count || 0; 
+                });
+                
+                document.getElementById('admin-user-count').textContent = userCount;
+                document.getElementById('admin-total-balance').textContent = `R$${totalBalance.toFixed(2)}`;
+                document.getElementById('admin-total-ads').textContent = totalAds.toLocaleString();
+                document.getElementById('admin-total-referrals').textContent = totalReferrals.toLocaleString(); 
+            });
+
+            const requestsColRef = collection(firestore, 'withdrawal_requests');
+            const q = query(requestsColRef, where("status", "==", "Pending"));
+            
+            onSnapshot(q, async (querySnapshot) => {
+                const ul = document.getElementById('withdrawal-list');
+                ul.innerHTML = '<p style="color:var(--subtle-text);">Loading requests...</p>'; 
+                
+                const pendingRequests = [];
+
+                querySnapshot.forEach(docSnapshot => {
+                    const request = docSnapshot.data();
+                    const requestId = docSnapshot.id;
+                    const timestamp = request.timestamp?.seconds * 1000 || 0; 
+                    pendingRequests.push({ ...request, requestId, timestamp });
+                });
+
+                pendingRequests.sort((a, b) => a.timestamp - b.timestamp);
+
+                const requestsWithUserDataPromises = pendingRequests.map(async (request) => {
+                    const userRef = rtdbRef(rtdb, 'users/' + request.user_id);
+                    const userSnapshot = await rtdbGet(userRef);
+                    const userData = userSnapshot.val() || { 
+                        balance_robux: 0.0, 
+                        daily_ads_watched: 0,
+                        total_ads_watched: 0,
+                        referral_count: 0
+                    };
+                    return {
+                        ...request,
+                        current_balance_robux: userData.balance_robux || 0.0,
+                        user_daily_ads: userData.daily_ads_watched || 0,
+                        user_total_ads: userData.total_ads_watched || 0,
+                        user_referral_count: userData.referral_count || 0,
+                    };
+                });
+                
+                const requestsWithUserData = await Promise.all(requestsWithUserDataPromises);
+                
+                ul.innerHTML = '';
+
+                if (requestsWithUserData.length === 0) {
+                    ul.innerHTML = '<p style="color:green; font-weight:700;">No pending withdrawal requests.</p>';
+                } else {
+                    requestsWithUserData.forEach(request => {
+                        const li = document.createElement('li');
+                        
+                        li.innerHTML = `
+                            <p><strong>User:</strong> ${request.username} (UID: ${request.user_id})</p>
+                            <p><strong>Net Amount:</strong> <code>${request.amount_net_robux} R\$</code> (Requested: ${request.amount_requested_robux} R\$)</p>
+                            <div class="user-stats-grid">
+                                <div class="stat-item">
+                                    <div>Total Ads</div>
+                                    <div class="stat-value">${request.user_total_ads}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Referrals</div>
+                                    <div class="stat-value">${request.user_referral_count}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Balance</div>
+                                    <div class="stat-value">R$${request.current_balance_robux.toFixed(2)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Requested</div>
+                                    <div class="stat-value">${request.amount_requested_robux} R\$</div>
+                                </div>
+                            </div>
+                            <p><strong>Game Pass:</strong> <a href="${request.gamepass_link}" target="_blank" style="color:var(--primary-color);">View Link</a></p>
+                            <div style="margin-top: 10px;">
+                                <button onclick="processWithdrawal('${request.requestId}', 'Completed')" class="approve-btn">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button onclick="processWithdrawal('${request.requestId}', 'Rejected', '${request.user_id}', ${request.amount_requested_robux})" class="reject-btn">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                                <button onclick="viewWithdrawalDetails('${request.user_id}', ${request.user_total_ads}, ${request.user_referral_count}, ${request.user_daily_ads}, '${request.current_balance_robux.toFixed(2)}', '${request.amount_requested_robux}')" class="info-btn">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </button>
+                                <button onclick="manualBanUser('${request.user_id}', '${request.username}')" class="orange-btn" style="margin-top: 5px;">
+                                    <i class="fas fa-ban"></i> Ban User
+                                </button>
+                            </div>
+                        `;
+                        ul.appendChild(li);
+                    });
+                }
+            });
+        }
+        
+        window.viewWithdrawalDetails = (userId, totalAds, referrals, dailyAds, currentBalance, requestedRobux) => {
+            let details = `📝 Withdrawal Request Details:\n\n`;
+            details += `👤 User UID: ${userId}\n`;
+            details += `💰 Current Balance: R$${currentBalance}\n`;
+            details += `💸 Requested: ${requestedRobux} R$\n`;
+            details += `\n--- Usage Stats ---\n`;
+            details += `📈 Total Ads Watched: ${totalAds}\n`;
+            details += `📅 Daily Ads Watched: ${dailyAds} / ${AD_LIMIT}\n`;
+            details += `👥 Total Referrals: ${referrals}\n`;
+            
+            customAlert(details);
+        };
+
+
+        window.processWithdrawal = (requestId, status, userIdToRefund, amountRobuxToRefund) => {
+            if (!ADMIN_UIDS.includes(userUid)) return;
+            
+            const requestDocRef = doc(firestore, 'withdrawal_requests', requestId);
+            
+            updateDoc(requestDocRef, {
+                status: status,
+                processed_by_admin: userUid,
+                processed_at: serverTimestamp()
+            }).then(() => {
+                customAlert(`Request ${requestId} set to ${status}.`);
+                
+                if (status === 'Rejected' && userIdToRefund && amountRobuxToRefund) {
+                    const refundAmount = parseFloat(amountRobuxToRefund);
+                    if (isNaN(refundAmount) || refundAmount <= 0) {
+                        return customAlert("Rejection successful, but refund amount is invalid.");
+                    }
+                    
+                    const userRef = rtdbRef(rtdb, 'users/' + userIdToRefund);
+                    rtdbGet(userRef).then(snapshot => {
+                        const userData = snapshot.val();
+                        if (userData) {
+                            const newBalance = (userData.balance_robux || 0.0) + refundAmount;
+                            return rtdbUpdate(userRef, { balance_robux: newBalance });
+                        }
+                    }).then(() => {
+                        customAlert(`Request rejected and R$${refundAmount.toFixed(2)} refunded to user.`);
+                    });
+                }
+                
+            }).catch(e => {
+                customAlert(`Admin action failed: ${e.message}`);
+            });
+        }
+
+        // Google Giriş Fonksiyonları
+        const handleGoogleSignIn = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                // Giriş pop-up'ını göster
+                const result = await signInWithPopup(auth, provider);
+                // Giriş başarılı, onAuthStateChanged tetiklenecek
+            } catch (error) {
+                // Hata yönetimi
+                customAlert(`Google Sign-In Failed: ${error.message}`);
+            }
+        };
+
+        function setupEventListeners() {
+            document.getElementById('google-sign-in-btn').addEventListener('click', handleGoogleSignIn);
+            document.getElementById('watch-ad-btn').addEventListener('click', handleWatchAd);
+            document.getElementById('share-ref-btn').addEventListener('click', handleShareReferral);
+            document.getElementById('withdraw-form').addEventListener('submit', handleWithdrawSubmit);
+            
+            document.getElementById('amount-robux').addEventListener('input', () => {
+                const robux = parseInt(document.getElementById('amount-robux').value);
+                const netRobuxDisplay = document.getElementById('withdraw-net-robux');
+                if (isNaN(robux) || robux <= 0) {
+                    netRobuxDisplay.textContent = '0';
+                } else {
+                    const net = robux * (1 - ROBLOX_FEE_PERCENTAGE);
+                    netRobuxDisplay.textContent = Math.floor(net); // Robux'ta küsurat olmaz
+                }
+            });
+
+            document.getElementById('user-search-input').addEventListener('input', () => {
+                 loadAllUsers();
+            });
+
+            const navButtons = document.querySelectorAll('.bottom-nav .nav-btn');
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const pageId = button.dataset.page;
+                    window.showSection(pageId); 
+                });
+            });
+        }
+        
+        // Kullanıcı giriş durumunu izleme
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Kullanıcı Giriş Yaptı
+                userUid = user.uid;
+                userName = user.displayName || 'User';
+                userEmail = user.email;
+                
+                document.getElementById('current-username').textContent = userName;
+                document.getElementById('bottom-nav').style.display = 'flex';
+                
+                if (ADMIN_UIDS.includes(userUid)) {
+                    document.getElementById('admin-indicator').style.display = 'block';
+                    const nav = document.querySelector('.bottom-nav');
+                    if (!document.querySelector('.nav-btn[data-page="admin-panel"]')) {
+                        const adminBtn = document.createElement('button');
+                        adminBtn.className = 'nav-btn';
+                        adminBtn.dataset.page = 'admin-panel';
+                        adminBtn.innerHTML = '<i class="fas fa-user-shield"></i><span>Admin</span>';
+                        adminBtn.addEventListener('click', () => showSection('admin-panel')); 
+                        nav.appendChild(adminBtn);
+                    }
+                }
+
+                const isBanned = await checkUserBan();
+                if (isBanned) {
+                    return;
+                }
+
+                setupUserListener();
+                setupSecurityMonitor();
+                showSection('menu-page');
+
+            } else {
+                // Kullanıcı Çıkış Yaptı
+                userUid = null;
+                userName = 'Guest';
+                userEmail = null;
+                document.getElementById('current-username').textContent = 'Guest';
+                document.getElementById('bottom-nav').style.display = 'none';
+                document.getElementById('admin-indicator').style.display = 'none';
+                
+                 // Admin butonu varsa kaldır
+                const adminBtn = document.querySelector('.nav-btn[data-page="admin-panel"]');
+                if (adminBtn) adminBtn.remove();
+                
+                showSection('auth-screen');
+            }
+        });
+
+        const initApp = async () => {
+            setupEventListeners();
+            // onAuthStateChanged zaten otomatik olarak başlangıçta çalışır ve doğru ekranı gösterir.
+        };
+        
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
