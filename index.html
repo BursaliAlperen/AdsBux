@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -351,8 +352,10 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getDatabase, ref as rtdbRef, get as rtdbGet, set as rtdbSet, update as rtdbUpdate, onValue as rtdbOnValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Firebase Analytics Eklentisi için import Eklendi
+        import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-        // YENİ FIREBASE YAPILANDIRMASI (Kullanıcının sağladığı ile güncellendi)
+        // YENİ FIREBASE YAPILANDIRMASI
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyA4hyg3BbR--b5c_ig01yr_OblTZP4TsDE",
             authDomain: "adsbux-73efc.firebaseapp.com",
@@ -392,10 +395,14 @@
         const auth = getAuth(app);
         const rtdb = getDatabase(app);
         const firestore = getFirestore(app);
+        // Firebase Analytics başlatılıyor
+        const analytics = getAnalytics(app); 
 
         // Genel alert fonksiyonu (Telegram WebApp alert yerine standart tarayıcı/mobil alert)
         const customAlert = (message) => {
             alert(message);
+            // logEvent (Örnek kullanım)
+            logEvent(analytics, 'custom_alert', { message: message.substring(0, 100) });
         }
 
         window.showSection = (sectionId) => {
@@ -421,6 +428,9 @@
                 loadBannedUsers(); 
                 loadAllUsers(); 
             }
+            
+            // logEvent (Sayfa geçişleri)
+            logEvent(analytics, 'page_view', { page_title: sectionId });
         }
 
         window.copyToClipboard = (elementId) => {
@@ -429,8 +439,10 @@
 
             navigator.clipboard.writeText(code).then(() => {
                 customAlert("Referral Code copied to clipboard! (Share your unique User ID)");
+                logEvent(analytics, 'referral_code_copied');
             }).catch(err => {
                  customAlert(`Failed to copy: ${err}`);
+                 logEvent(analytics, 'referral_copy_failed');
             });
         }
         
@@ -500,6 +512,8 @@
                  customAlert("Security violation detected. Your account has been suspended and you have been signed out.");
                  await signOut(auth);
             }
+            
+            logEvent(analytics, 'user_autobanned', { banned_uid: uid, ban_reason: reason.substring(0, 50) });
         }
 
         function detectSuspiciousActivity(userData, previousData) {
@@ -545,6 +559,8 @@
                     const suspicionCount = (currentData.suspicion_count || 0) + 1;
                     await rtdbUpdate(userRef, { suspicion_count: suspicionCount });
                     
+                    logEvent(analytics, 'suspicious_activity_detected', { uid: userUid, reason: reason.substring(0, 50), count: suspicionCount });
+
                     if (suspicionCount >= SECURITY_CONFIG.SUSPICIOUS_ACTIVITY_LIMIT) {
                         await autoBanUser(`Multiple cheat detection: ${reason}`, userUid, userName); 
                     }
@@ -659,6 +675,7 @@
             }).then(() => {
                 customAlert(`User ${username} (UID: ${uid}) banned successfully.`);
                 loadBannedUsers();
+                logEvent(analytics, 'user_manual_banned', { banned_uid: uid });
             });
         };
 
@@ -667,6 +684,7 @@
             await rtdbSet(banRef, null);
             customAlert("User unbanned successfully.");
             loadBannedUsers();
+            logEvent(analytics, 'user_manual_unbanned', { unbanned_uid: userKey });
         };
 
         window.viewUserDetails = (userId) => {
@@ -812,6 +830,7 @@
                     };
                     rtdbSet(userRef, newUser);
                     userData = newUser; 
+                    logEvent(analytics, 'new_user_registered', { uid: userUid, method: 'google' });
                 }
 
                 // Daily Ads Reset Logic
@@ -871,6 +890,10 @@
             });
             
             customAlert(`Success! You earned R$${reward} Robux.`);
+            
+            // logEvent (Ödül kazanma)
+            logEvent(analytics, 'ad_reward_granted', { reward_amount: rewardFloat, uid: userUid });
+            
             return reward; // Kazanılan miktarı döndür
         }
         
@@ -889,18 +912,23 @@
                      watchAdBtn.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right:10px;"></i> Daily Limit Reached';
                      customAlert(`Daily ad limit (${AD_LIMIT}) has been reached.`);
                      updateAdCooldown();
+                     logEvent(analytics, 'ad_limit_reached', { uid: userUid });
                      return; 
                 }
                 
                 watchAdBtn.disabled = true;
                 watchAdBtn.classList.add('loading');
                 watchAdBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:10px;"></i> Showing Ad...';
+                
+                // logEvent (Reklam başlatma)
+                logEvent(analytics, 'ad_start', { uid: userUid, ad_index: adsWatched + 1 });
 
                 // Simüle edilmiş reklam gösterimi (Gerçekte bir reklam SDK'sı burada çalışır)
                 setTimeout(() => {
                     handleRewardAndIncrement(userRef) // Ödül ve sayaç artışı
                     .catch(e => {
                         customAlert(`Error during reward process: ${e.message}`);
+                        logEvent(analytics, 'ad_reward_error', { uid: userUid, error: e.message.substring(0, 50) });
                     })
                     .finally(() => {
                         watchAdBtn.disabled = false;
@@ -937,10 +965,13 @@ Join AdsBux now and grab your free Robux reward!
                 navigator.share({ 
                     title: 'AdsBux - Free Robux!', 
                     text: shareText 
+                }).then(() => {
+                     logEvent(analytics, 'referral_share_native', { uid: userUid });
                 });
             } else {
                 navigator.clipboard.writeText(shareText).then(() => {
                     customAlert("Promotional text copied to clipboard! Share it with your friends!");
+                    logEvent(analytics, 'referral_share_copy', { uid: userUid });
                 });
             }
         }
@@ -977,6 +1008,7 @@ Join AdsBux now and grab your free Robux reward!
                     }).then(() => {
                         customAlert(`Referral code applied successfully! Your referrer received R$${REFERRAL_BONUS_R$.toFixed(2)} Robux.`);
                         document.getElementById('enter-referrer-code').value = '';
+                        logEvent(analytics, 'referral_applied_success', { referrer_uid: referrerCode, referee_uid: userUid });
                     });
                 });
             });
@@ -1024,6 +1056,7 @@ Join AdsBux now and grab your free Robux reward!
                 
                 if (amountInRobux > robuxBalance) {
                     withdrawSubmitBtn.disabled = false;
+                    logEvent(analytics, 'withdrawal_insufficient_balance', { uid: userUid, requested: amountInRobux, balance: robuxBalance });
                     return customAlert(`Withdrawal failed: Insufficient balance. Available R$: ${robuxBalance.toFixed(2)}`);
                 }
 
@@ -1047,8 +1080,12 @@ Join AdsBux now and grab your free Robux reward!
                 customAlert(`Withdrawal request for ${amountInRobux} R\$ submitted successfully. Your request is now pending admin approval.`);
                 document.getElementById('amount-robux').value = '';
                 document.getElementById('withdraw-net-robux').textContent = '0';
+                
+                // logEvent (Çekim talebi)
+                logEvent(analytics, 'withdrawal_requested', { uid: userUid, amount_requested: amountInRobux, amount_net: netRobuxReceived });
             }).catch(e => {
                 customAlert(`Withdrawal failed: ${e.message}`);
+                logEvent(analytics, 'withdrawal_failed', { uid: userUid, error: e.message.substring(0, 50) });
             }).finally(() => {
                 withdrawSubmitBtn.disabled = false;
             });
@@ -1214,8 +1251,11 @@ Join AdsBux now and grab your free Robux reward!
                     });
                 }
                 
+                logEvent(analytics, 'withdrawal_processed', { request_id: requestId, status: status, processed_by: userUid });
+                
             }).catch(e => {
                 customAlert(`Admin action failed: ${e.message}`);
+                logEvent(analytics, 'admin_action_failed', { action: 'process_withdrawal', error: e.message.substring(0, 50) });
             });
         }
 
@@ -1226,9 +1266,11 @@ Join AdsBux now and grab your free Robux reward!
                 // Giriş pop-up'ını göster
                 const result = await signInWithPopup(auth, provider);
                 // Giriş başarılı, onAuthStateChanged tetiklenecek
+                logEvent(analytics, 'login', { method: 'google' });
             } catch (error) {
                 // Hata yönetimi
                 customAlert(`Google Sign-In Failed: ${error.message}`);
+                logEvent(analytics, 'login_failed', { method: 'google', error: error.code });
             }
         };
 
