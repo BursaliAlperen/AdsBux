@@ -178,7 +178,7 @@
             <div id="auth-screen" class="page active">
                 <h2>Welcome to AdsBux</h2>
                 <p style="margin-bottom: 25px;">Please sign in with Google to start earning Robux!</p>
-                <button id="google-sign-in-btn">
+                <button id="google-sign-in-btn" onclick="signInWithGoogle()">
                     <i class="fab fa-google"></i> Sign in with Google
                 </button>
             </div>
@@ -349,10 +349,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getDatabase, ref as rtdbRef, get as rtdbGet, set as rtdbSet, update as rtdbUpdate, onValue as rtdbOnValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        // Firebase Analytics Eklentisi için import Eklendi
         import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
         // YENİ FIREBASE YAPILANDIRMASI
@@ -395,15 +394,87 @@
         const auth = getAuth(app);
         const rtdb = getDatabase(app);
         const firestore = getFirestore(app);
-        // Firebase Analytics başlatılıyor
         const analytics = getAnalytics(app); 
 
-        // Genel alert fonksiyonu (Telegram WebApp alert yerine standart tarayıcı/mobil alert)
+        // Genel alert fonksiyonu
         const customAlert = (message) => {
             alert(message);
-            // logEvent (Örnek kullanım)
             logEvent(analytics, 'custom_alert', { message: message.substring(0, 100) });
         }
+        
+        // Yeni kullanıcıyı RTDB'ye kaydeden yardımcı fonksiyon
+        const setupNewUser = async (user) => {
+            const userRef = rtdbRef(rtdb, 'users/' + user.uid);
+            const newUser = {
+                uid: user.uid,
+                username: user.displayName || 'User',
+                email: user.email,
+                balance_robux: 0.0,
+                daily_ads_watched: 0,
+                total_ads_watched: 0,
+                referral_count: 0,
+                referred_by: null,
+                created_at: serverTimestamp(),
+                last_reset_check: serverTimestamp()
+            };
+            await rtdbSet(userRef, newUser);
+            logEvent(analytics, 'new_user_registered', { uid: user.uid, method: 'google_redirect' });
+        }
+        
+        // **[HATA ÇÖZÜMÜ BÖLÜMÜ BAŞLANGIÇ]**
+
+        // 1. Yönlendirme sonucunu kontrol eden fonksiyon
+        const checkRedirectResult = async () => {
+            try {
+                // Yönlendirme sonucunu almayı deniyoruz
+                const result = await getRedirectResult(auth); 
+                if (result) {
+                    // Kullanıcı başarıyla oturum açtı.
+                    logEvent(analytics, 'login_success_redirect');
+                    
+                    const user = result.user;
+                    const userRef = rtdbRef(rtdb, 'users/' + user.uid);
+                    const snapshot = await rtdbGet(userRef);
+                    
+                    // Yeni kullanıcıysa kaydı oluştur
+                    if (!snapshot.exists()) {
+                        await setupNewUser(user);
+                    }
+                }
+            } catch (error) {
+                console.error("Redirect Sign-in Error:", error);
+                // "missing initial state" hatası genellikle burada yakalanır
+                let errorMessage = "Oturum açma başarısız oldu. Lütfen uygulama önbelleğini temizleyip tekrar deneyin. (Kod: 101)";
+                if (error.code) {
+                     errorMessage = `Oturum açma hatası: ${error.code}. Lütfen tekrar deneyin.`;
+                }
+                customAlert(errorMessage);
+                logEvent(analytics, 'login_failed_redirect', { error_code: error.code || 'unknown' });
+            }
+        };
+
+        // 2. Yeni Oturum Açma Fonksiyonu: signInWithRedirect kullanır
+        window.signInWithGoogle = async () => {
+            const signInButton = document.getElementById('google-sign-in-btn');
+            signInButton.disabled = true;
+            signInButton.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:10px;"></i> Signing In...';
+            
+            const provider = new GoogleAuthProvider();
+            try {
+                // Pop-up yerine tüm sayfayı kimlik doğrulama sağlayıcısına yönlendirir.
+                await signInWithRedirect(auth, provider); 
+                // Bu kod satırından sonra tarayıcı yönlendirileceği için başka bir kod çalışmaz.
+                
+            } catch (error) {
+                // Eğer yönlendirme başlayamazsa
+                signInButton.disabled = false;
+                signInButton.innerHTML = '<i class="fab fa-google"></i> Sign in with Google';
+                customAlert("Google Giriş Başarısız: " + (error.message || "Bilinmeyen bir hata oluştu."));
+                logEvent(analytics, 'sign_in_redirect_start_failed', { error_code: error.code || 'unknown' });
+            }
+        }
+        
+        // **[HATA ÇÖZÜMÜ BÖLÜMÜ BİTİŞ]**
 
         window.showSection = (sectionId) => {
              // Kullanıcı girişi yapılmadıysa menüyü gösterme
@@ -429,7 +500,6 @@
                 loadAllUsers(); 
             }
             
-            // logEvent (Sayfa geçişleri)
             logEvent(analytics, 'page_view', { page_title: sectionId });
         }
 
@@ -570,7 +640,7 @@
             });
         }
 
-        // Admin fonksiyonları (Kaldırılan Telegram ID yerine UID ve Username kullanıldı)
+        // Admin fonksiyonları
         function loadAllUsers() {
             const usersRef = rtdbRef(rtdb, 'users');
             const ul = document.getElementById('users-list');
@@ -589,7 +659,6 @@
                 const users = [];
                 snapshot.forEach(userSnapshot => {
                     const userData = userSnapshot.val();
-                    // Telegram ID kaldırıldı, yerine UID ve Username kullanıldı
                     users.push({
                         uid: userSnapshot.key,
                         username: userData.username || 'N/A',
@@ -606,7 +675,6 @@
                 let filteredCount = 0;
 
                 users.forEach(user => {
-                    // FİLTRELEME MANTIĞI: UID veya Username'e göre arama
                     const matchesSearch = searchTerm === '' || 
                                           user.username.toLowerCase().includes(searchTerm) ||
                                           user.uid.toLowerCase().includes(searchTerm);
@@ -816,21 +884,12 @@
                 
                 if (!snapshot.exists()) {
                     // Kullanıcı oturumu açıldı ama RTDB kaydı yoksa yeni kayıt oluştur.
-                    const newUser = {
-                        uid: userUid,
-                        username: userName,
-                        email: userEmail,
-                        balance_robux: 0.0,
-                        daily_ads_watched: 0,
-                        total_ads_watched: 0,
-                        referral_count: 0,
-                        referred_by: null,
-                        created_at: serverTimestamp(),
-                        last_reset_check: serverTimestamp()
-                    };
-                    rtdbSet(userRef, newUser);
-                    userData = newUser; 
-                    logEvent(analytics, 'new_user_registered', { uid: userUid, method: 'google' });
+                    // Bu senaryo artık checkRedirectResult içinde ele alınmaktadır.
+                    const user = auth.currentUser;
+                    if (user && user.uid === userUid) {
+                        setupNewUser(user);
+                    }
+                    return;
                 }
 
                 // Daily Ads Reset Logic
@@ -891,13 +950,12 @@
             
             customAlert(`Success! You earned R$${reward} Robux.`);
             
-            // logEvent (Ödül kazanma)
             logEvent(analytics, 'ad_reward_granted', { reward_amount: rewardFloat, uid: userUid });
             
-            return reward; // Kazanılan miktarı döndür
+            return reward; 
         }
         
-        // Reklam İzleme Fonksiyonu (Adexora kaldırıldı)
+        // Reklam İzleme Fonksiyonu
         const handleWatchAd = () => {
             const watchAdBtn = document.getElementById('watch-ad-btn');
             const userRef = rtdbRef(rtdb, 'users/' + userUid);
@@ -920,12 +978,11 @@
                 watchAdBtn.classList.add('loading');
                 watchAdBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:10px;"></i> Showing Ad...';
                 
-                // logEvent (Reklam başlatma)
                 logEvent(analytics, 'ad_start', { uid: userUid, ad_index: adsWatched + 1 });
 
                 // Simüle edilmiş reklam gösterimi (Gerçekte bir reklam SDK'sı burada çalışır)
                 setTimeout(() => {
-                    handleRewardAndIncrement(userRef) // Ödül ve sayaç artışı
+                    handleRewardAndIncrement(userRef) 
                     .catch(e => {
                         customAlert(`Error during reward process: ${e.message}`);
                         logEvent(analytics, 'ad_reward_error', { uid: userUid, error: e.message.substring(0, 50) });
@@ -936,7 +993,7 @@
                         watchAdBtn.innerHTML = '<i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad';
                         updateAdCooldown();
                     });
-                }, 3000); // 3 saniye reklam izleme simülasyonu
+                }, 3000); 
 
             }).catch(e => {
                 customAlert(`Error fetching user data: ${e.message}`);
@@ -1081,7 +1138,6 @@ Join AdsBux now and grab your free Robux reward!
                 document.getElementById('amount-robux').value = '';
                 document.getElementById('withdraw-net-robux').textContent = '0';
                 
-                // logEvent (Çekim talebi)
                 logEvent(analytics, 'withdrawal_requested', { uid: userUid, amount_requested: amountInRobux, amount_net: netRobuxReceived });
             }).catch(e => {
                 customAlert(`Withdrawal failed: ${e.message}`);
@@ -1259,49 +1315,8 @@ Join AdsBux now and grab your free Robux reward!
             });
         }
 
-        // Google Giriş Fonksiyonları
-        const handleGoogleSignIn = async () => {
-            const signInButton = document.getElementById('google-sign-in-btn');
-            // Butonu kilitle
-            signInButton.disabled = true;
-
-            try {
-                // HATA ÇÖZÜMÜ: Eğer Median WebView kullanılıyorsa Native Bridge metodu kullan.
-                if (window.median && window.median.auth && window.median.auth.loginWithGoogle) {
-                    
-                    // Median'ın yerel (native) Google Girişini kullan. 
-                    // Bu, Firebase'in 'missing initial state' hatasını çözer ve WebView'de stabil çalışır.
-                    await window.median.auth.loginWithGoogle();
-                    logEvent(analytics, 'login', { method: 'google_median_native' });
-
-                } else {
-                    // Standart tarayıcıda veya Median yoksa Firebase pop-up'ını kullan
-                    customAlert("Signing in via Firebase Pop-up...");
-                    const provider = new GoogleAuthProvider();
-                    await signInWithPopup(auth, provider);
-                    logEvent(analytics, 'login', { method: 'google_popup' });
-                }
-
-            } catch (error) {
-                // Hata yönetimi
-                let errorMessage = error.message;
-                if (error.message.includes('missing initial state')) {
-                    // Median'ın kullanılmaması durumunda özel hata mesajı
-                    errorMessage = "Oturum durumu hatası! Lütfen uygulamanızı güncelleyin veya tekrar deneyin.";
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    errorMessage = "Giriş kullanıcı tarafından iptal edildi.";
-                }
-                
-                customAlert(`Google Giriş Başarısız: ${errorMessage}`);
-                logEvent(analytics, 'login_failed', { method: 'google', error_code: error.code || error.message.substring(0, 50) });
-            } finally {
-                // İşlem bitince butonu aç
-                signInButton.disabled = false;
-            }
-        };
-
         function setupEventListeners() {
-            document.getElementById('google-sign-in-btn').addEventListener('click', handleGoogleSignIn);
+            // document.getElementById('google-sign-in-btn').addEventListener('click', signInWithGoogle); // Zaten HTML'de onclick var
             document.getElementById('watch-ad-btn').addEventListener('click', handleWatchAd);
             document.getElementById('share-ref-btn').addEventListener('click', handleShareReferral);
             document.getElementById('withdraw-form').addEventListener('submit', handleWithdrawSubmit);
@@ -1313,7 +1328,7 @@ Join AdsBux now and grab your free Robux reward!
                     netRobuxDisplay.textContent = '0';
                 } else {
                     const net = robux * (1 - ROBLOX_FEE_PERCENTAGE);
-                    netRobuxDisplay.textContent = Math.floor(net); // Robux'ta küsurat olmaz
+                    netRobuxDisplay.textContent = Math.floor(net); 
                 }
             });
 
@@ -1372,7 +1387,6 @@ Join AdsBux now and grab your free Robux reward!
                 document.getElementById('bottom-nav').style.display = 'none';
                 document.getElementById('admin-indicator').style.display = 'none';
                 
-                 // Admin butonu varsa kaldır
                 const adminBtn = document.querySelector('.nav-btn[data-page="admin-panel"]');
                 if (adminBtn) adminBtn.remove();
                 
@@ -1380,9 +1394,11 @@ Join AdsBux now and grab your free Robux reward!
             }
         });
 
+        // **[initApp GÜNCELLEMESİ]**
         const initApp = async () => {
             setupEventListeners();
-            // onAuthStateChanged zaten otomatik olarak başlangıçta çalışır ve doğru ekranı gösterir.
+            // Sayfa yüklendiğinde yönlendirme sonucunu kontrol eder.
+            await checkRedirectResult(); 
         };
         
         document.addEventListener('DOMContentLoaded', initApp);
