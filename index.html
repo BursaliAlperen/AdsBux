@@ -462,8 +462,9 @@
     </div>
 
     <script type="module">
+        // DEĞİŞİKLİK: signInWithRedirect ve getRedirectResult eklendi
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getDatabase, ref as rtdbRef, get as rtdbGet, set as rtdbSet, update as rtdbUpdate, onValue as rtdbOnValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
@@ -1520,16 +1521,41 @@ Join AdsBux now and grab your free Robux reward!
         }
 
         // Google Giriş Fonksiyonları
+        // DEĞİŞİKLİK: signInWithRedirect kullanıldı
         const handleGoogleSignIn = async () => {
             const provider = new GoogleAuthProvider();
             try {
-                const result = await signInWithPopup(auth, provider);
-                logEvent(analytics, 'login', { method: 'google' });
+                // signInWithRedirect, about:blank sorununu çözer
+                await signInWithRedirect(auth, provider);
+                // Bu satıra asla ulaşılmaz, sayfa yönlendirilir
             } catch (error) {
                 customAlert(`Google Sign-In Failed: ${error.message}`);
                 logEvent(analytics, 'login_failed', { method: 'google', error: error.code });
             }
         };
+
+        // Yönlendirme sonrası sonucu işleme (signInWithRedirect için gereklidir)
+        const handleRedirectResult = () => {
+            getRedirectResult(auth)
+                .then((result) => {
+                    if (result?.user) {
+                        // Başarılı bir yönlendirme girişi tamamlandı
+                        logEvent(analytics, 'login', { method: 'google', type: 'redirect_success' });
+                        // onAuthStateChanged tetiklenecek ve kullanıcı kurulumunu yapacak.
+                    }
+                })
+                .catch((error) => {
+                    // Yönlendirme sırasında oluşabilecek hataları yakalar
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // Kullanıcı kapatırsa da buraya düşebilir. Sadece uyarı ver.
+                    if (errorCode !== 'auth/popup-closed-by-user') {
+                         customAlert(`Google Giriş Hatası (Yönlendirme): ${errorMessage} - Kod: ${errorCode}`);
+                         logEvent(analytics, 'login_failed', { method: 'google_redirect', error: errorCode });
+                    }
+                });
+        }
+
 
         function setupEventListeners() {
             document.getElementById('google-sign-in-btn').addEventListener('click', handleGoogleSignIn);
@@ -1618,6 +1644,7 @@ Join AdsBux now and grab your free Robux reward!
         });
 
         const initApp = async () => {
+            handleRedirectResult(); // Yönlendirme sonrası sonucu kontrol et (Fix için eklendi)
             setupEventListeners();
         };
         
