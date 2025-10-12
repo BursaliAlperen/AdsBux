@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "396593744688",
+    "firebase_url": "https://adsbux-73efc-default-rtdb.firebaseio.com",
+    "project_id": "adsbux-73efc",
+    "storage_bucket": "adsbux-73efc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396593744688:android:67fe7da6bb881631d396f5",
+        "android_client_info": {
+          "package_name": "Adsbux.company"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "396593744688-ccgd65vk7v82e7nfi3bd9l4v9f1ku7i2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLd767MaXLkg-mAo04SPJw6Ix4BMtcBgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "396593744688-ccgd65vk7v82e7nfi3bd9l4v9f1ku7i2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
