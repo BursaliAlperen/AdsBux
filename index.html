@@ -76,8 +76,8 @@
 
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.95rem; color: var(--text-color); }
-        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 1rem; border: 1px solid var(--border-color); transition: border-color 0.2s; }
-        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary-color); outline: none; }
+        input[type="text"], input[type="number"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 1rem; border: 1px solid var(--border-color); transition: border-color 0.2s; }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary-color); outline: none; }
         
         .input-group { display: flex; margin-bottom: 15px; }
         .input-group input { flex-grow: 1; padding: 12px; border-radius: 8px 0 0 8px; font-family: inherit; font-size: 1rem; border: 1px solid var(--border-color); border-right: none; background-color: var(--bg-color); }
@@ -138,24 +138,6 @@
             border-left: none;
             padding-left: 0;
         }
-        #google-sign-in-btn {
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-        }
-        #google-sign-in-btn i {
-            margin-right: 10px;
-        }
 
         /* Adsterra Banner Yerleşimi için Yeni CSS */
         .ad-container {
@@ -198,11 +180,26 @@
 
             <div id="auth-screen" class="page active">
                 <h2>Welcome to AdsBux</h2>
-                <p style="margin-bottom: 25px;">Please sign in with Google to start earning Robux!</p>
-                <button id="google-sign-in-btn">
-                    <i class="fab fa-google"></i> Sign in with Google
-                </button>
-            </div>
+                <p style="margin-bottom: 25px;">Please sign in to start earning Robux!</p>
+                
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>Email & Password Login</h3>
+                    <div class="form-group">
+                        <input type="email" id="email-input" placeholder="Email Address" required style="margin-bottom: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password-input" placeholder="Password" required>
+                    </div>
+                    <button id="email-sign-in-btn" class="action-btn" style="margin-top: 15px; background-color: #3498db;">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                    <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.9rem;">
+                        <a href="#" onclick="handleEmailSignUp(event); return false;" style="color:var(--primary-color); font-weight:600;">Register New Account</a>
+                        <a href="#" onclick="handlePasswordReset(event); return false;" style="color:#e74c3c; font-weight:600;">Forgot Password?</a>
+                    </div>
+                </div>
+
+                </div>
             
             <div id="banned-screen" class="page" style="text-align: center; padding: 40px; background-color: #ffebeb; border: 3px solid #e74c3c; margin-top: 20px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #e74c3c; margin-bottom: 15px;"></i>
@@ -296,10 +293,6 @@
                 </div>
                 
                 <div class="menu-grid" style="margin-top: 15px;">
-                    <div onclick="showSection('earning-page')" class="menu-tile">
-                        <i class="fas fa-bolt"></i>
-                        <span>Passive Earning</span>
-                    </div>
                     <div onclick="showSection('friends-page')" class="menu-tile">
                         <i class="fas fa-users"></i>
                         <span>Friends & Referrals</span>
@@ -310,94 +303,6 @@
                     </div>
                 </div>
             </div>
-
-            <div id="earning-page" class="page">
-                <h2><i class="fas fa-coins"></i> Passive Earning (60s)</h2>
-
-                <div class="ad-container">
-                    <div class="ad-label">ADSTERRA BANNER 1 (Leaderboard 728x90)</div>
-                    <div id="adsterra-banner-1" class="ad-slot" style="min-height: 90px; max-width: 728px;">
-                        <script type="text/javascript">
-                            atOptions = {
-                                'key' : 'd277237ac02a5e5eb2ad9a2e5faa4283',
-                                'format' : 'iframe',
-                                'height' : 90,
-                                'width' : 728,
-                                'params' : {}
-                            };
-                        </script>
-                        <script type="text/javascript" src="//www.highperformanceformat.com/d277237ac02a5e5eb2ad9a2e5faa4283/invoke.js"></script>
-                    </div>
-                </div>
-                
-                <div class="card" id="passive-earning-zone-card">
-                    <h3>60 Saniyede 0.10 Robux Kazan!</h3>
-                    <p class="withdraw-note" id="earning-info">Sayfayı açık tutarak her 60 saniyede bir Robux kazanırsın. (Reklamların görünür olması zorunludur)</p>
-                    
-                    <div class="ad-container" style="padding: 10px; margin-bottom: 10px;">
-                        <div class="ad-label">ADSTERRA BANNER 2 (Mobile 320x50)</div>
-                        <div id="adsterra-banner-2" class="ad-slot" style="min-height: 50px; max-width: 320px;">
-                             <script type="text/javascript">
-                                atOptions = {
-                                    'key' : '500631a5190f74beba630eada08fbe90',
-                                    'format' : 'iframe',
-                                    'height' : 50,
-                                    'width' : 320,
-                                    'params' : {}
-                                };
-                            </script>
-                            <script type="text/javascript" src="//www.highperformanceformat.com/500631a5190f74beba630eada08fbe90/invoke.js"></script>
-                        </div>
-                    </div>
-                    
-                    <div style="margin: 20px 0;">
-                        <div style="height: 25px; background-color: var(--bg-color); border-radius: 5px; overflow: hidden; border: 1px solid var(--primary-color);">
-                            <div id="passive-earning-progress-bar" style="width: 0%; height: 100%; background-color: var(--secondary-color); transition: width 1s linear; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem;">
-                                0s / 60s
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ad-container" style="padding: 10px; margin-top: 10px;">
-                        <div class="ad-label">ADSTERRA BANNER 3 (Banner 468x60)</div>
-                        <div id="adsterra-banner-3" class="ad-slot" style="min-height: 60px; max-width: 468px;">
-                             <script type="text/javascript">
-                                atOptions = {
-                                    'key' : 'e0f92dd9168e3920e1c4eff553c7cc01',
-                                    'format' : 'iframe',
-                                    'height' : 60,
-                                    'width' : 468,
-                                    'params' : {}
-                                };
-                            </script>
-                            <script type="text/javascript" src="//www.highperformanceformat.com/e0f92dd9168e3920e1c4eff553c7cc01/invoke.js"></script>
-                        </div>
-                    </div>
-
-                    <button class="action-btn" id="start-passive-earning-btn">
-                        <i class="fas fa-play"></i> Kazanmaya Başla
-                    </button>
-                </div>
-                
-                <div class="ad-container">
-                    <div class="ad-label">ADSTERRA BANNER 4 (Wide Skyscraper 160x600)</div>
-                    <div id="adsterra-banner-4" class="ad-slot" style="min-height: 600px; max-width: 160px;">
-                        <script type="text/javascript">
-                            atOptions = {
-                                'key' : '636a7a8f9442783d2d74d2473e10dae8',
-                                'format' : 'iframe',
-                                'height' : 600,
-                                'width' : 160,
-                                'params' : {}
-                            };
-                        </script>
-                        <script type="text/javascript" src="//www.highperformanceformat.com/636a7a8f9442783d2d74d2473e10dae8/invoke.js"></script>
-                    </div>
-                </div>
-
-                <p class="withdraw-note" style="margin-top: 20px; text-align: center;">**Uyarı:** Popunder veya Native Banner kodunu sayfanın başına ekleyebilirsiniz.</p>
-            </div>
-
 
             <div id="friends-page" class="page">
                 <h2><i class="fas fa-user-friends"></i> Referral System</h2>
@@ -416,8 +321,6 @@
                         <button onclick="copyToClipboard('referral-code-input')"><i class="fas fa-copy"></i> Copy Code</button>
                     </div>
                     
-                    <button id="share-ref-btn" class="action-btn" style="margin-top:0;"><i class="fas fa-share-alt" style="margin-right:10px;"></i> Share Promotional Text</button>
-
                     <h3 style="font-size:1.2rem; margin-top:25px; margin-bottom:5px;">Enter Friend's Code</h3>
                     <p class="withdraw-note">You can only use one code once.</p>
                     <div class="input-group">
@@ -455,15 +358,13 @@
 
         <nav class="bottom-nav" style="display:none;" id="bottom-nav">
             <button class="nav-btn active" data-page="home-page"><i class="fas fa-home"></i><span>Home</span></button>
-            <button class="nav-btn" data-page="earning-page"><i class="fas fa-bolt"></i><span>Earning</span></button>
             <button class="nav-btn" data-page="friends-page"><i class="fas fa-users"></i><span>Friends</span></button>
             <button class="nav-btn" data-page="withdraw-page"><i class="fas fa-wallet"></i><span>Withdraw</span></button>
         </nav>
     </div>
 
     <script type="module">
-        // DEĞİŞİKLİK: signInWithRedirect ve getRedirectResult eklendi
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getDatabase, ref as rtdbRef, get as rtdbGet, set as rtdbSet, update as rtdbUpdate, onValue as rtdbOnValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -474,19 +375,17 @@
             authDomain: "adsbux-73efc.firebaseapp.com",
             databaseURL: "https://adsbux-73efc-default-rtdb.firebaseio.com",
             projectId: "adsbux-73efc",
-            storageBucket: "adsbux-73efc.firebasestorage.app",
+            storageBucket: "adsbux-73efc.appspot.com",
             messagingSenderId: "396593744688",
             appId: "1:396593744688:web:03d7020fa05c9296d396f5",
             measurementId: "G-SFXVSS6MRJ"
         };
-        const ADMIN_UIDS = ["YOUR_ADMIN_UID_1", "YOUR_ADMIN_UID_2"]; 
+        const ADMIN_UIDS = ["YOUR_ADMIN_UID_1", "YOUR_ADMIN_UID_2", "gWFB27CkLLOYHhEFhd70WyxpcwV2"]; 
         const AD_LIMIT = 75; 
         
         // KAZANÇ VE ÇEKİM SABİTLERİ (Robux)
         const EARNINGS_PER_AD_MIN_R$ = 0.10; // İzle ve Kazan için
         const EARNINGS_PER_AD_MAX_R$ = 0.50; // İzle ve Kazan için
-        const PASSIVE_EARNING_AMOUNT = 0.10; // Yeni Pasif Kazanma için
-        const PASSIVE_EARNING_CYCLE_SECONDS = 60; // Yeni Pasif Kazanma için
         const REFERRAL_BONUS_R$ = 5.0; 
         const MIN_WITHDRAW_R$ = 100;
         const MAX_WITHDRAW_R$ = 1000;
@@ -505,11 +404,7 @@
         let userUid = null;
         let userName = null;
         let userEmail = null;
-        
-        // Pasif Kazanç Değişkenleri
-        let earningInterval = null;
-        let isEarningActive = false;
-        let timerStartTime = 0;
+        let isAdLoaded = false; // YENİ: Reklamın yüklü olup olmadığını simüle eden değişken
 
         const app = initializeApp(FIREBASE_CONFIG);
         const auth = getAuth(app);
@@ -537,20 +432,12 @@
 
             if (sectionId === 'home-page') {
                 updateAdCooldown(); 
-            } else if (sectionId === 'earning-page') {
-                checkPersistentTimer(); // Pasif kazanç sayacını kontrol et ve devam ettir
-            }
+            } 
 
             if (sectionId === 'admin-panel') {
                 loadAdminPanel();
                 loadBannedUsers(); 
                 loadAllUsers(); 
-            }
-            
-            // Eğer Pasif Kazanma sayfasından çıkılırsa sayacı durdur
-            if (isEarningActive && sectionId !== 'earning-page') {
-                clearInterval(earningInterval);
-                isEarningActive = false;
             }
             
             logEvent(analytics, 'page_view', { page_title: sectionId });
@@ -673,7 +560,7 @@
                     return;
                 }
                 
-                const suspiciousActivities = detectSuspiciousActivity(currentData, previousUserData);
+                const suspiciousActivities = detectSuspiciousActivity(currentData, previousData);
                 
                 if (suspiciousActivities.length > 0) {
                     const reason = suspiciousActivities.join(' | ');
@@ -925,6 +812,25 @@
             });
         }
         
+        // YENİ FONKSİYON: Reklam yüklemeyi simüle eder
+        const loadRewardedAd = () => {
+             const watchAdBtn = document.getElementById('watch-ad-btn');
+             if (isAdLoaded) return; 
+
+             watchAdBtn.disabled = true;
+             watchAdBtn.classList.add('loading');
+             watchAdBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:10px;"></i> Loading Ad...';
+             logEvent(analytics, 'ad_load_start', { uid: userUid });
+
+             setTimeout(() => {
+                 isAdLoaded = true;
+                 watchAdBtn.disabled = false;
+                 watchAdBtn.classList.remove('loading');
+                 watchAdBtn.innerHTML = '<i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad';
+                 logEvent(analytics, 'ad_loaded', { uid: userUid });
+             }, 2000); // 2 saniye sonra yüklendi olarak işaretle
+        }
+
         function setupUserListener() {
             if (!userUid) return;
             
@@ -934,9 +840,12 @@
                 let userData = snapshot.val();
                 
                 if (!snapshot.exists()) {
+                    // Kullanıcı e-posta/şifre ile kayıt olduğunda kullanıcı adı/e-posta bilgisini buradan alabiliriz.
+                    let defaultUsername = user.displayName || user.email?.split('@')[0] || 'User'; 
+
                     const newUser = {
                         uid: userUid,
-                        username: userName,
+                        username: defaultUsername,
                         email: userEmail,
                         balance_robux: 0.0,
                         daily_ads_watched: 0,
@@ -948,7 +857,7 @@
                     };
                     rtdbSet(userRef, newUser);
                     userData = newUser; 
-                    logEvent(analytics, 'new_user_registered', { uid: userUid, method: 'google' });
+                    logEvent(analytics, 'new_user_registered', { uid: userUid, method: user.providerId || 'email_password' });
                 }
 
                 // Daily Ads Reset Logic
@@ -1014,6 +923,13 @@
         // Reklam İzleme Fonksiyonu (İzle ve Kazan)
         const handleWatchAd = () => {
             const watchAdBtn = document.getElementById('watch-ad-btn');
+            
+            if (!isAdLoaded) {
+                 customAlert("Ad is not ready. Attempting to load ad now. Please try again in a moment.");
+                 loadRewardedAd(); // Reklamı yüklemeyi dene
+                 return; 
+            }
+            
             const userRef = rtdbRef(rtdb, 'users/' + userUid);
             
             rtdbGet(userRef).then((snapshot) => {
@@ -1035,6 +951,8 @@
                 watchAdBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:10px;"></i> Showing Ad...';
                 
                 logEvent(analytics, 'ad_start', { uid: userUid, ad_index: adsWatched + 1 });
+                
+                isAdLoaded = false; // Reklam gösterildikten sonra yüklü durumunu sıfırla
 
                 setTimeout(() => {
                     handleRewardAndIncrement(userRef) 
@@ -1047,6 +965,7 @@
                         watchAdBtn.classList.remove('loading');
                         watchAdBtn.innerHTML = '<i class="fas fa-play-circle" style="margin-right:10px;"></i> Watch Ad';
                         updateAdCooldown();
+                        loadRewardedAd(); // Yeni reklamı yüklemeyi başlat
                     });
                 }, 3000); 
 
@@ -1059,185 +978,101 @@
         }
 
 
-        // --- YENİ PASİF KAZANÇ LOGİĞİ BAŞLANGIÇ ---
-
-        // Reklam Div'lerinin Görüntülenme Kontrolü
-        const isAdVisible = () => {
-            // Check if at least 2 of 4 hardcoded Adsterra banner areas are visible 
-            const adSlots = [
-                document.getElementById('adsterra-banner-1'),
-                document.getElementById('adsterra-banner-2'),
-                document.getElementById('adsterra-banner-3'),
-                document.getElementById('adsterra-banner-4')
-            ];
-
-            let visibleAdCount = 0;
-            adSlots.forEach(el => {
-                if (!el) return;
-                const rect = el.getBoundingClientRect();
-                const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
-                const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
-                
-                // Reklamın en az %50'si görünür durumda olmalı ve bir yüksekliği olmalı
-                const isVerticalInView = (rect.bottom >= 0.5 * rect.height) && (rect.top <= windowHeight - 0.5 * rect.height);
-                const isHorizontalInView = (rect.right >= 0) && (rect.left <= windowWidth);
-                const isLoaded = rect.height > 5; 
-
-                if (isVerticalInView && isHorizontalInView && isLoaded) {
-                    visibleAdCount++;
-                }
-            });
-            return visibleAdCount >= 2;
-        };
-
-        // Robux'u atomik olarak bakiyeye ekler
-        const awardRobux = async () => {
-            if (!userUid) return;
-            const userRef = rtdbRef(rtdb, 'users/' + userUid);
-
-            try {
-                // Mevcut bakiyeyi çek ve güncelle
-                const snapshot = await rtdbGet(userRef);
-                const currentBalance = snapshot.val()?.balance_robux || 0.0;
-                const newBalance = currentBalance + PASSIVE_EARNING_AMOUNT;
-                
-                await rtdbUpdate(userRef, {
-                    balance_robux: newBalance,
-                });
-
-                customAlert(`Tebrikler! +${PASSIVE_EARNING_AMOUNT.toFixed(2)} Robux kazandınız.`, 'success');
-                
-            } catch (error) {
-                console.error("Pasif Robux verme hatası:", error);
-                customAlert("Robux kazanılırken bir hata oluştu.", 'error');
-            }
-        };
-
-
-        const updateProgressBar = (elapsedSeconds) => {
-            const progressBar = document.getElementById('passive-earning-progress-bar');
-            const startBtn = document.getElementById('start-passive-earning-btn');
-            
-            if (!progressBar || !startBtn) return;
-
-            if (elapsedSeconds >= PASSIVE_EARNING_CYCLE_SECONDS) {
-                // Tamamlandı
-                progressBar.style.width = '100%';
-                progressBar.textContent = 'TAMAMLANDI! Yeniden Başlatın.';
-                startBtn.innerHTML = '<i class="fas fa-redo"></i> Tekrar Kazanmaya Başla';
-                startBtn.disabled = false;
-                
-                if (isEarningActive) {
-                    clearInterval(earningInterval);
-                    isEarningActive = false;
-                    localStorage.removeItem('timerStartTime');
-                    awardRobux();
-                }
-            } else {
-                // Devam ediyor
-                const percentage = (elapsedSeconds / PASSIVE_EARNING_CYCLE_SECONDS) * 100;
-                progressBar.style.width = `${percentage}%`;
-                progressBar.textContent = `${elapsedSeconds}s / ${PASSIVE_EARNING_CYCLE_SECONDS}s`;
-                startBtn.innerHTML = '<i class="fas fa-hourglass-half"></i> Kazanılıyor...';
-                startBtn.disabled = true;
-            }
-        };
-
-        const runEarningTimer = () => {
-            earningInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
-                updateProgressBar(elapsed);
-                
-                if (elapsed >= PASSIVE_EARNING_CYCLE_SECONDS) {
-                    // Sayacın durdurulması ve ödülün verilmesi updateProgressBar içinde gerçekleşir.
-                }
-            }, 1000);
-            isEarningActive = true;
-        };
-
-        window.startEarningTimer = (resume = false) => {
-            if (isEarningActive || !userUid) return;
-            
-            // KAZANMA ŞARTINI KONTROL ET (ADSTERRA GÖRÜNÜRLÜĞÜ)
-            if (!resume && !isAdVisible()) {
-                customAlert("Kazanmaya başlamak için banner reklam alanlarından en az 2 tanesinin yüklenmiş ve ekranınızda görünür olması gerekir. Lütfen kaydırma yaparak reklamların görünmesini sağlayın.", 'error');
-                return; 
-            }
-            
-            const startBtn = document.getElementById('start-passive-earning-btn');
-            startBtn.disabled = true;
-
-            if (!resume) {
-                // Yeni bir döngü başlat ve zamanı kaydet
-                timerStartTime = Date.now();
-                localStorage.setItem('timerStartTime', timerStartTime);
-                document.getElementById('passive-earning-progress-bar').style.width = '0%';
-                document.getElementById('passive-earning-progress-bar').textContent = '0s / 60s';
-                logEvent(analytics, 'passive_earning_start', { uid: userUid, type: 'new' });
-            } else {
-                // Kaldığı yerden devam et
-                const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
-                updateProgressBar(elapsed);
-                logEvent(analytics, 'passive_earning_start', { uid: userUid, type: 'resume' });
-            }
-            
-            runEarningTimer();
-        };
-
-        const checkPersistentTimer = () => {
-            const savedStartTime = localStorage.getItem('timerStartTime');
-            if (savedStartTime) {
-                timerStartTime = parseInt(savedStartTime);
-                const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
-                
-                if (elapsed < PASSIVE_EARNING_CYCLE_SECONDS) {
-                    // Timer devam ediyor, sayfayı açınca kaldığı yerden devam ettir
-                    window.startEarningTimer(true);
-                } else {
-                    // Timer dolmuş ama ödül verilmemiş (Ödül verilmesi için butona basılması gerekir)
-                    localStorage.removeItem('timerStartTime');
-                    updateProgressBar(PASSIVE_EARNING_CYCLE_SECONDS); 
-                }
-            } else {
-                 // Başlat düğmesini sıfırla
-                 const startBtn = document.getElementById('start-passive-earning-btn');
-                 if(startBtn) {
-                     startBtn.disabled = false;
-                     startBtn.innerHTML = '<i class="fas fa-play"></i> Kazanmaya Başla';
-                 }
-            }
-        };
-
-        // --- YENİ PASİF KAZANÇ LOGİĞİ BİTİŞ ---
+        // --- PASİF KAZANÇ LOGİĞİ KALDIRILDI ---
         
-        const handleShareReferral = () => {
-            const userCode = document.getElementById('referral-code-input').value;
-            const shareText = 
-`💰 AdsBux - FREE ROBUX! 🚀
+        // E-posta/Şifre Giriş Fonksiyonları BAŞLANGIÇ
 
-I'm earning free Robux (R\$) every day just by watching short ads! 
+        window.handleEmailSignIn = (e) => {
+            if(e) e.preventDefault();
+            const email = document.getElementById('email-input').value.trim();
+            const password = document.getElementById('password-input').value;
+            const btn = document.getElementById('email-sign-in-btn');
 
-🔥 **REFERRAL BONUS:** Join using my code **${userCode}** and start earning. When you invite friends, you get a bonus **${REFERRAL_BONUS_R$.toFixed(2)} R\$** for each successful referral!
-
-✅ **MINIMUM WITHDRAWAL:** Only ${MIN_WITHDRAW_R$}. Fast & Easy Game Pass Transfers!
-
-Join AdsBux now and grab your free Robux reward!
-#Roblox #Robux #FreeRobux #AdsBux`;
-            
-            if (navigator.share) {
-                navigator.share({ 
-                    title: 'AdsBux - Free Robux!', 
-                    text: shareText 
-                }).then(() => {
-                     logEvent(analytics, 'referral_share_native', { uid: userUid });
-                });
-            } else {
-                navigator.clipboard.writeText(shareText).then(() => {
-                    customAlert("Promotional text copied to clipboard! Share it with your friends!");
-                    logEvent(analytics, 'referral_share_copy', { uid: userUid });
-                });
+            if (!email || !password) {
+                return customAlert("Please enter both email and password.");
             }
-        }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    logEvent(analytics, 'login', { method: 'email' });
+                    // onAuthStateChanged will handle UI updates
+                })
+                .catch((error) => {
+                    let errorMessage = "Login failed. Please check your credentials.";
+                    if (error.code === 'auth/user-not-found') errorMessage = "User not found. Please register.";
+                    else if (error.code === 'auth/wrong-password') errorMessage = "Invalid password.";
+                    else if (error.code === 'auth/invalid-email') errorMessage = "Invalid email format.";
+                    
+                    customAlert(`Error: ${errorMessage}`);
+                    logEvent(analytics, 'login_failed', { method: 'email', error: error.code });
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                });
+        };
+        
+        window.handleEmailSignUp = (e) => {
+            if(e) e.preventDefault();
+            const email = document.getElementById('email-input').value.trim();
+            const password = document.getElementById('password-input').value;
+            
+            if (!email || !password) {
+                return customAlert("Please enter both email and password for registration.");
+            }
+            if (password.length < 6) {
+                return customAlert("Password must be at least 6 characters long.");
+            }
+            
+            const isConfirmed = confirm(`Are you sure you want to register with email: ${email}?`);
+            if (!isConfirmed) return;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // userCredential.user.displayName is null, userUid is set in onAuthStateChanged
+                    customAlert("Registration successful! You are now logged in.");
+                    logEvent(analytics, 'new_user_registered', { uid: userCredential.user.uid, method: 'email_password' });
+                    // onAuthStateChanged will handle user creation in RTDB
+                })
+                .catch((error) => {
+                    let errorMessage = "Registration failed.";
+                    if (error.code === 'auth/email-already-in-use') errorMessage = "This email is already in use.";
+                    else if (error.code === 'auth/invalid-email') errorMessage = "Invalid email format.";
+                    
+                    customAlert(`Error: ${errorMessage}`);
+                    logEvent(analytics, 'registration_failed', { method: 'email', error: error.code });
+                });
+        };
+
+        window.handlePasswordReset = (e) => {
+            if(e) e.preventDefault();
+            const email = document.getElementById('email-input').value.trim();
+            
+            if (!email) {
+                return customAlert("Please enter your email address in the field above to reset your password.");
+            }
+            
+            const isConfirmed = confirm(`A password reset link will be sent to ${email}. Continue?`);
+            if (!isConfirmed) return;
+
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    customAlert(`Password reset email sent to ${email}. Please check your inbox (and spam folder).`);
+                    logEvent(analytics, 'password_reset_sent', { email: email });
+                })
+                .catch((error) => {
+                    let errorMessage = "Password reset failed. Please check the email address.";
+                    if (error.code === 'auth/user-not-found') errorMessage = "User not found. Please check the email.";
+                    
+                    customAlert(`Error: ${errorMessage}`);
+                    logEvent(analytics, 'password_reset_failed', { error: error.code });
+                });
+        };
+
+        // E-posta/Şifre Giriş Fonksiyonları BİTİŞ
 
         window.applyReferralCode = () => {
             const referrerCode = document.getElementById('enter-referrer-code').value.trim();
@@ -1520,50 +1355,21 @@ Join AdsBux now and grab your free Robux reward!
             });
         }
 
-        // Google Giriş Fonksiyonları
-        // DEĞİŞİKLİK: signInWithRedirect kullanıldı
-        const handleGoogleSignIn = async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                // signInWithRedirect, about:blank sorununu çözer
-                await signInWithRedirect(auth, provider);
-                // Bu satıra asla ulaşılmaz, sayfa yönlendirilir
-            } catch (error) {
-                customAlert(`Google Sign-In Failed: ${error.message}`);
-                logEvent(analytics, 'login_failed', { method: 'google', error: error.code });
-            }
-        };
-
-        // Yönlendirme sonrası sonucu işleme (signInWithRedirect için gereklidir)
+        // Google Giriş Fonksiyonları Kaldırıldı
+        
+        // Yönlendirme sonrası sonucu işleme (signInWithRedirect kaldırıldığı için bu fonksiyon içi boş bırakıldı/kaldırıldı)
         const handleRedirectResult = () => {
-            getRedirectResult(auth)
-                .then((result) => {
-                    if (result?.user) {
-                        // Başarılı bir yönlendirme girişi tamamlandı
-                        logEvent(analytics, 'login', { method: 'google', type: 'redirect_success' });
-                        // onAuthStateChanged tetiklenecek ve kullanıcı kurulumunu yapacak.
-                    }
-                })
-                .catch((error) => {
-                    // Yönlendirme sırasında oluşabilecek hataları yakalar
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    // Kullanıcı kapatırsa da buraya düşebilir. Sadece uyarı ver.
-                    if (errorCode !== 'auth/popup-closed-by-user') {
-                         customAlert(`Google Giriş Hatası (Yönlendirme): ${errorMessage} - Kod: ${errorCode}`);
-                         logEvent(analytics, 'login_failed', { method: 'google_redirect', error: errorCode });
-                    }
-                });
+             // Google Sign-In with Redirect kaldırıldığı için bu fonksiyonun içeriği artık gerekli değildir.
         }
 
 
         function setupEventListeners() {
-            document.getElementById('google-sign-in-btn').addEventListener('click', handleGoogleSignIn);
+            // YENİ E-POSTA/ŞİFRE EVENT LİSTENIR'LARI
+            document.getElementById('email-sign-in-btn').addEventListener('click', handleEmailSignIn);
+            // Google giriş butonu kaldırıldı
             document.getElementById('watch-ad-btn').addEventListener('click', handleWatchAd);
-            document.getElementById('share-ref-btn').addEventListener('click', handleShareReferral);
             document.getElementById('withdraw-form').addEventListener('submit', handleWithdrawSubmit);
-            // Yeni Pasif Kazanma Butonu
-            document.getElementById('start-passive-earning-btn').addEventListener('click', () => window.startEarningTimer(false));
+            // Yeni Pasif Kazanma Butonu Event Listener'ı kaldırıldı
             
             document.getElementById('amount-robux').addEventListener('input', () => {
                 const robux = parseInt(document.getElementById('amount-robux').value);
@@ -1594,7 +1400,8 @@ Join AdsBux now and grab your free Robux reward!
             if (user) {
                 // Kullanıcı Giriş Yaptı
                 userUid = user.uid;
-                userName = user.displayName || 'User';
+                // E-posta/şifre ile girişte user.displayName null olabilir, bu durumda e-postadan isim almayı dene
+                userName = user.displayName || user.email?.split('@')[0] || 'User'; 
                 userEmail = user.email;
                 
                 document.getElementById('current-username').textContent = userName;
@@ -1620,6 +1427,7 @@ Join AdsBux now and grab your free Robux reward!
 
                 setupUserListener();
                 setupSecurityMonitor();
+                loadRewardedAd(); // YENİ: Giriş yaptıktan sonra reklam yüklemeyi başlat
                 showSection('home-page'); // Başlangıç sayfasını Home olarak ayarla
 
             } else {
@@ -1627,9 +1435,7 @@ Join AdsBux now and grab your free Robux reward!
                 userUid = null;
                 userName = 'Guest';
                 userEmail = null;
-                // Pasif kazanç sayacını durdur
-                if (earningInterval) clearInterval(earningInterval);
-                isEarningActive = false;
+                isAdLoaded = false; // Çıkış yapınca reklam yükleme durumunu sıfırla
                 
                 document.getElementById('current-username').textContent = 'Guest';
                 document.getElementById('bottom-nav').style.display = 'none';
@@ -1644,7 +1450,7 @@ Join AdsBux now and grab your free Robux reward!
         });
 
         const initApp = async () => {
-            handleRedirectResult(); // Yönlendirme sonrası sonucu kontrol et (Fix için eklendi)
+            // handleRedirectResult Google giriş kaldırıldığı için artık işlevsizdir
             setupEventListeners();
         };
         
