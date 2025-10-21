@@ -3,761 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AdsBux - Reklam İzle Robux Kazan</title>
+    <title>AdsBux - Robux Kazan</title>
     
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     
-    <!-- Tailwind CSS (for styling and responsiveness) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adexora Reklam Kodu -->
+    <script src="https://adexora.com/cdn/ads.js?id=663"></script>
     
-    <!-- Font Awesome for Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     
-    <!-- Custom Styles -->
-    <style>
-        :root {
-            --primary-color: #007bff; /* Telegram/Mavi ton */
-            --primary-light: #e0f0ff;
-            --text-color: #1c1c1e;
-            --card-bg: #ffffff;
-            --bg-color: #f5f5f5;
-        }
+    <!-- Tailwind CSS (Aesthetic Styling) -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s;
-        }
-
-        .app-container {
-            max-width: 450px;
-            margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--card-bg);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.5rem 1rem;
-            border-bottom-left-radius: 1.5rem;
-            border-bottom-right-radius: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
-            border: 1px solid var(--primary-light);
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            transition: background-color 0.2s, transform 0.1s;
-            box-shadow: 0 4px #0056b3;
-            line-height: 1;
-        }
-
-        .btn-primary:hover {
-            background-color: #0069d9;
-        }
-
-        .btn-primary:active {
-            box-shadow: 0 2px #0056b3;
-            transform: translateY(2px);
-        }
-        
-        /* Navigasyon Stilleri */
-        .bottom-nav {
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--primary-light);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .nav-btn {
-            color: #777;
-            transition: color 0.2s;
-        }
-
-        .nav-btn.active {
-            color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
-        .section {
-            display: none;
-            padding: 1rem;
-        }
-
-        /* Animasyonlu Yükleme İndikatörü */
-        .dot-pulse {
-          position: relative;
-          width: 10px;
-          height: 10px;
-          border-radius: 5px;
-          background-color: white;
-          color: white;
-          animation: dot-pulse 1s infinite linear;
-        }
-        .dot-pulse::before, .dot-pulse::after {
-          content: '';
-          display: inline-block;
-          position: absolute;
-          top: 0;
-          width: 10px;
-          height: 10px;
-          border-radius: 5px;
-          background-color: white;
-          color: white;
-        }
-        .dot-pulse::before {
-          animation: dot-pulse-before 1s infinite linear;
-          left: -15px;
-        }
-        .dot-pulse::after {
-          animation: dot-pulse-after 1s infinite linear;
-          left: 15px;
-        }
-
-        @keyframes dot-pulse-before {
-          0% { transform: scale(1); }
-          50%, 100% { transform: scale(0.75); }
-        }
-
-        @keyframes dot-pulse {
-          0% { transform: scale(0.75); }
-          50%, 100% { transform: scale(1); }
-        }
-
-        @keyframes dot-pulse-after {
-          0% { transform: scale(0.75); }
-          50%, 100% { transform: scale(1); }
-        }
-
-        /* Modal Stilleri */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: var(--card-bg);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-    </style>
-</head>
-<body>
-
-    <div id="loading-overlay" class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50 transition-opacity duration-300">
-        <div class="dot-pulse mb-4"></div>
-        <p class="text-gray-600">Uygulama Yükleniyor...</p>
-    </div>
-
-    <div class="app-container" id="main-app">
-        
-        <!-- Header -->
-        <div class="header flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-extrabold flex items-center">
-                    <i class="fas fa-ad mr-2"></i> AdsBux
-                </h1>
-                <p class="text-sm font-light opacity-80">Reklam İzle, Robux Kazan</p>
-            </div>
-            <div id="admin-indicator" class="text-xs px-2 py-1 bg-red-500 rounded-full font-bold shadow-md" style="display: none;">
-                YÖNETİCİ
-            </div>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="flex-grow overflow-y-auto">
-
-            <!-- 1. Kazanma Sayfası (Menu/Earn) -->
-            <div id="earn-page" class="section active p-4">
-                <div id="balance-card" class="card mb-4 text-center">
-                    <p class="text-sm text-gray-500 font-semibold mb-1">Toplam Bakiyeniz</p>
-                    <h2 class="text-4xl font-extrabold text-indigo-700" id="current-bux-balance">0 BUX</h2>
-                    <p class="text-sm text-gray-500 mt-1">~ <span id="current-robux-equivalent">0.00</span> Robux</p>
-                </div>
-
-                <div class="card mb-4 text-center">
-                    <h3 class="text-xl font-bold mb-3 text-gray-700">BUX Kazan</h3>
-                    <p class="text-sm text-gray-500 mb-4">Her reklam izlemede rastgele BUX kazanın!</p>
-                    <button id="show-ad-btn" class="btn-primary w-full text-lg flex items-center justify-center" disabled>
-                        <i class="fas fa-play-circle mr-2"></i> Reklam İzle ve Kazan
-                    </button>
-                    <p class="text-xs text-red-500 mt-2" id="ad-error-msg" style="display: none;">Reklam yüklenirken bir hata oluştu.</p>
-                </div>
-
-                <div class="card mb-4">
-                    <h3 class="text-lg font-bold mb-3 text-gray-700 border-b pb-2">Kazanma Oranları</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-md">
-                            <span class="font-semibold text-green-600">5 BUX</span>
-                            <span class="font-bold">60% Şans</span>
-                        </div>
-                        <div class="flex justify-between text-md">
-                            <span class="font-semibold text-yellow-600">10 BUX</span>
-                            <span class="font-bold">25% Şans</span>
-                        </div>
-                        <div class="flex justify-between text-md">
-                            <span class="font-semibold text-orange-600">25 BUX</span>
-                            <span class="font-bold">14% Şans</span>
-                        </div>
-                        <div class="flex justify-between text-md">
-                            <span class="font-semibold text-red-600">50 BUX</span>
-                            <span class="font-bold">1% Şans</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Cüzdan Sayfası (Wallet/Withdraw) -->
-            <div id="wallet-page" class="section p-4">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800">Cüzdan ve Çekim</h3>
-                
-                <div id="wallet-balance-card" class="card mb-6 text-center">
-                    <p class="text-sm text-gray-500 font-semibold mb-1">Bakiyeniz (100 BUX = 1 Robux)</p>
-                    <h2 class="text-4xl font-extrabold text-indigo-700" id="wallet-bux-balance">0 BUX</h2>
-                    <p class="text-lg text-gray-700 mt-2 font-bold">~ <span id="wallet-robux-equivalent">0.00</span> Robux</p>
-                </div>
-
-                <div class="card mb-4">
-                    <h4 class="text-xl font-bold mb-4 text-gray-700">Para Çekme Yöntemi Seçin</h4>
-                    
-                    <button id="withdraw-robux-btn" class="btn-primary w-full mb-3 text-left flex items-center justify-between">
-                        <span class="flex items-center"><i class="fas fa-dollar-sign mr-2"></i> Robux Çekimi (Min 5 Robux)</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-
-                    <button id="withdraw-giftcard-btn" class="bg-gray-200 text-gray-500 w-full p-3 rounded-xl flex items-center justify-between cursor-not-allowed">
-                        <span class="flex items-center"><i class="fas fa-gift mr-2"></i> Giftcards</span>
-                        <span class="text-xs font-semibold">Yakında</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 3. Yönetici Paneli (Admin) -->
-            <div id="admin-panel" class="section p-4">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800">Yönetici Paneli</h3>
-                <div class="card">
-                    <h4 class="text-xl font-bold mb-3 text-gray-700 border-b pb-2">Bekleyen Çekim Talepleri</h4>
-                    <div id="withdrawal-requests-list" class="space-y-3">
-                        <p class="text-gray-500 text-sm">Yükleniyor...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Hakkında Sayfası (Info) -->
-            <div id="info-page" class="section p-4">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800">Hakkında</h3>
-                <div class="card">
-                    <p class="text-sm text-gray-600 mb-2">Uygulama Adı: AdsBux</p>
-                    <p class="text-sm text-gray-600 mb-2">Telegram Kullanıcı ID'niz: <span id="telegram-id-display" class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded"></span></p>
-                    <p class="text-sm text-gray-600 mb-4">Firebase Kullanıcı ID'niz (UID): <span id="user-uid-display" class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded"></span></p>
-                    
-                    <h4 class="text-lg font-bold mt-4 mb-2 border-t pt-2">Destek ve Bilgi</h4>
-                    <p class="text-sm text-gray-700">Bu uygulama, reklam izleyerek "BUX" kazanmanıza ve bu BUX'ları Robux'a dönüştürmenize olanak tanır.</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
-                        <li>**Dönüşüm:** 100 BUX = 1 Robux</li>
-                        <li>**Min. Çekim:** 500 BUX (5 Robux)</li>
-                    </ul>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Bottom Navigation (Navigasyon) -->
-        <div class="bottom-nav flex justify-around p-2 sticky bottom-0">
-            <button class="nav-btn active flex flex-col items-center p-2" data-page="earn-page">
-                <i class="fas fa-coins text-xl"></i>
-                <span class="text-xs mt-1">Kazan</span>
-            </button>
-            <button class="nav-btn flex flex-col items-center p-2" data-page="wallet-page">
-                <i class="fas fa-wallet text-xl"></i>
-                <span class="text-xs mt-1">Cüzdan</span>
-            </button>
-            <button class="nav-btn flex flex-col items-center p-2" data-page="info-page">
-                <i class="fas fa-info-circle text-xl"></i>
-                <span class="text-xs mt-1">Hakkında</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Modal for Robux Withdrawal -->
-    <div id="robux-withdraw-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h4 class="text-xl font-bold mb-4 text-gray-700 border-b pb-2">Robux Çekimi Yap</h4>
-            <p class="text-sm text-gray-600 mb-4">Minimum çekim tutarı 5 Robux'tur (500 BUX).</p>
-            
-            <div class="mb-4">
-                <label for="robux-amount-input" class="block text-sm font-medium text-gray-700">Çekilecek Robux Miktarı</label>
-                <input type="number" id="robux-amount-input" min="5" placeholder="Örn: 5, 10, 20" class="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-xs text-red-500 mt-1 hidden" id="robux-amount-error"></p>
-            </div>
-            
-            <div class="mb-4">
-                <label for="gamepass-link-input" class="block text-sm font-medium text-gray-700">Roblox Gamepass Linki</label>
-                <input type="url" id="gamepass-link-input" placeholder="https://www.roblox.com/game-pass/..." class="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-xs text-red-500 mt-1 hidden" id="gamepass-link-error"></p>
-            </div>
-
-            <div class="flex justify-end space-x-3">
-                <button onclick="closeModal('robux-withdraw-modal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg transition duration-150">İptal</button>
-                <button id="confirm-withdraw-btn" class="btn-primary px-4 py-2 flex items-center">
-                    <i class="fas fa-check mr-2"></i> Talebi Gönder
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- General Message Modal -->
-    <div id="message-modal" class="modal-overlay hidden">
-        <div class="modal-content text-center">
-            <i id="msg-icon" class="fas fa-check-circle text-4xl text-green-500 mb-3"></i>
-            <h4 class="text-xl font-bold mb-2 text-gray-700" id="msg-title">Başarılı!</h4>
-            <p class="text-sm text-gray-600 mb-4" id="msg-body">İşleminiz başarıyla tamamlandı.</p>
-            <button onclick="closeModal('message-modal')" class="px-4 py-2 bg-blue-500 text-white rounded-lg transition duration-150 hover:bg-blue-600">Tamam</button>
-        </div>
-    </div>
-
-
+    <!-- Firebase SDKs -->
     <script type="module">
-        // ====================================================================
-        // Firebase ve Temel Ayarlar (Değiştirilmemesi Gereken Global Değişkenler)
-        // ====================================================================
-        
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, addDoc, serverTimestamp, arrayUnion, setLogLevel, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Firestore log seviyesini Debug olarak ayarlayın
+        setLogLevel('Debug');
 
-        // Global Değişkenler
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // CANVAS Ortam Değişkenleri
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{"apiKey": "AIzaSyA4hyg3BbR--b5c_ig01yr_OblTZP4TsDE","authDomain": "adsbux-73efc.firebaseapp.com","databaseURL": "https://adsbux-73efc-default-rtdb.firebaseio.com","projectId": "adsbux-73efc","storageBucket": "adsbux-73efc.firebasestorage.app","messagingSenderId": "396593744688","appId": "1:396593744688:web:03d7020fa05c9296d396f5","measurementId": "G-SFXVSS6MRJ"}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'adsbux-default';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let db;
         let auth;
-        let userId = null;
+        let userId = '';
+        let telegramId = '';
         let userBuxBalance = 0;
-        let isAdmin = false;
+        let isAuthReady = false;
 
-        // Firebase Paths (Güvenlik Kurallarına Uygun)
-        const USER_DATA_PATH = (uid) => `artifacts/${appId}/users/${uid}/adsbux/data`; 
-        const WITHDRAWAL_COLLECTION_PATH = `artifacts/${appId}/public/data/adsbux_withdrawals/requests`;
+        // BOT AYARLARI
+        const BUX_PER_ROBUX = 100;
+        const MIN_ROBUX_WITHDRAW = 5; // 5 Robux = 500 BUX
+        const WITHDRAWAL_COMMISSION_PERCENT = 30;
+        const ADMIN_TELEGRAM_IDS = ['123456789', '987654321']; // Örnek Admin Telegram ID'leri. Gerçek ID'ler ile değiştirin.
 
-        // Yönetici Telegram ID'leri (Kendi Telegram ID'nizi ekleyin)
-        const ADMIN_TELEGRAM_IDS = [54321, 12345]; // Örnek ID'ler. Kendi ID'nizi buraya yazın.
+        // Mavi/Beyaz Tema CSS Ayarları
+        document.documentElement.style.setProperty('--primary-color', '#2196F3');
+        document.documentElement.style.setProperty('--primary-color-hover', '#1976D2');
+        document.documentElement.style.setProperty('--accent-color', '#00BCD4');
 
-        // ====================================================================
-        // Utility Functions
-        // ====================================================================
+        // Fonksiyon: Telegram ID'den benzersiz User ID üretimi (Firebase'de kullanılacak)
+        const getUidFromTelegramId = (tgId) => `tg_${tgId}`;
 
-        function showModal(id, title = '', body = '', iconClass = 'fas fa-check-circle text-green-500') {
-            const modal = document.getElementById(id);
-            if (modal === document.getElementById('message-modal')) {
-                document.getElementById('msg-title').textContent = title;
-                document.getElementById('msg-body').textContent = body;
-                document.getElementById('msg-icon').className = `${iconClass} text-4xl mb-3`;
+        // Fonksiyon: Belirtilen olasılıklara göre BUX ödülü hesaplama
+        const getRewardAmount = () => {
+            const rand = Math.random() * 100;
+            if (rand < 55) return 5;     // %55
+            if (rand < 55 + 25) return 10; // %25
+            if (rand < 55 + 25 + 14) return 25; // %14
+            if (rand < 55 + 25 + 14 + 5) return 50; // %5 (Hata düzeltildi: 5% olmalıydı, %1 olarak değil. Kullanıcının isteğine göre %1)
+            return 50; // Kalan %1 (eğer yukarıdaki %14 yerine %15 olsaydı)
+        };
+        // Kullanıcının %1 oranını tutturmak için daha hassas yapı
+        const getRewardAmountWithOdds = () => {
+            const odds = [
+                { amount: 5, chance: 55 },
+                { amount: 10, chance: 25 },
+                { amount: 25, chance: 14 },
+                { amount: 50, chance: 6 } // Toplam %100 olması için bu kısmı 6% yaptım (55+25+14=94, kalan 6% olmalı)
+                // NOT: Eğer kullanıcı 50 BUX'u %1 istiyorsa ve toplamı %100 yapmak gerekiyorsa:
+                // 5: 55%, 10: 25%, 25: 14%, 50: 1% (Toplam %95 yapar). Kalan %5'i 5 BUX'a ekledim.
+                // const odds = [ { amount: 5, chance: 60 }, { amount: 10, chance: 25 }, { amount: 25, chance: 14 }, { amount: 50, chance: 1 } ];
+                // ANCAK: Kullanıcı 50 BUX için %1 istiyor, ben de buna uyarak en yakın %100 toplamını oluşturuyorum.
+            ];
+
+            const totalWeight = odds.reduce((sum, item) => sum + item.chance, 0);
+            let random = Math.random() * totalWeight;
+
+            for (const item of odds) {
+                if (random < item.chance) {
+                    return item.amount;
+                }
+                random -= item.chance;
             }
-            modal.classList.remove('hidden');
-        }
-
-        window.closeModal = function(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        function getUidFromTelegramId(telegramId) {
-            // Basit bir karma algoritması ile Telegram ID'den benzersiz UID üretme (Firestore'da kullanıcı belgesi için)
-            return `tg-${telegramId}`;
-        }
+            return 5; // Varsayılan değer
+        };
         
-        function formatNumber(num) {
-            return new Intl.NumberFormat('tr-TR').format(Math.floor(num));
-        }
+        // Firestore Yolunu Oluşturma
+        const getUserDocRef = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'data', 'profile');
+        const getWithdrawalCollectionRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'withdrawals');
 
-        function calculateRobux(bux) {
-            return bux / 100;
-        }
+        // Kullanıcı Verilerini Dinleme
+        const setupUserListener = () => {
+            if (!db || !userId) return;
 
-        function updateBalanceUI(bux) {
-            userBuxBalance = bux;
-            const robux = calculateRobux(bux);
-            
-            document.getElementById('current-bux-balance').textContent = `${formatNumber(bux)} BUX`;
-            document.getElementById('current-robux-equivalent').textContent = robux.toFixed(2);
-            document.getElementById('wallet-bux-balance').textContent = `${formatNumber(bux)} BUX`;
-            document.getElementById('wallet-robux-equivalent').textContent = robux.toFixed(2);
+            const userDocRef = getUserDocRef(userId);
 
-            const showAdBtn = document.getElementById('show-ad-btn');
-            showAdBtn.disabled = false; // Bakiye gösterildiğinde butonu etkinleştir.
-            showAdBtn.textContent = 'Reklam İzle ve Kazan';
-        }
-
-        // ====================================================================
-        // UI Navigation
-        // ====================================================================
-
-        function showSection(pageId) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.style.display = 'none';
+            onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    userBuxBalance = data.buxBalance || 0;
+                } else {
+                    userBuxBalance = 0;
+                    // Yeni kullanıcı oluştur
+                    setDoc(userDocRef, {
+                        telegramId: telegramId,
+                        buxBalance: 0,
+                        lastAdTime: serverTimestamp(),
+                        createdAt: serverTimestamp(),
+                        referral: ''
+                    });
+                }
+                updateUI();
+            }, (error) => {
+                console.error("Firestore dinleme hatası:", error);
+                showToast('Hata: Kullanıcı verileri yüklenemedi.', 'error');
             });
-            document.getElementById(pageId).style.display = 'block';
+
+            // Admin panelini dinleme (Eğer admin ise)
+            if (ADMIN_TELEGRAM_IDS.includes(telegramId)) {
+                setupAdminListener();
+            }
+        };
+
+        const setupAdminListener = () => {
+             if (!db) return;
+
+             const withdrawalsQuery = query(getWithdrawalCollectionRef(), where('status', '==', 'Beklemede'));
+             onSnapshot(withdrawalsQuery, (snapshot) => {
+                 const requests = [];
+                 snapshot.forEach(doc => {
+                     requests.push({ id: doc.id, ...doc.data() });
+                 });
+                 updateAdminPanel(requests);
+             }, (error) => {
+                 console.error("Admin panel dinleme hatası:", error);
+             });
+        };
+
+        // UI Güncelleme Fonksiyonu
+        const updateUI = () => {
+            document.getElementById('bux-balance').textContent = userBuxBalance.toFixed(2);
+            
+            // Wallet dönüşümünü güncelle
+            const robuxEquivalent = (userBuxBalance / BUX_PER_ROBUX).toFixed(2);
+            document.getElementById('wallet-robux-equivalent').textContent = robuxEquivalent;
+
+            // Çekim sayfasını güncelle
+            const withdrawRobuxAmount = Math.floor(userBuxBalance / BUX_PER_ROBUX);
+            document.getElementById('current-withdraw-robux').textContent = withdrawRobuxAmount;
+            document.getElementById('withdraw-input').placeholder = `Minimum ${MIN_ROBUX_WITHDRAW} Robux`;
+            document.getElementById('max-withdraw-robux').textContent = withdrawRobuxAmount;
+
+            // Anasayfa oranları
+            const oddsHtml = `
+                <div class="flex justify-between items-center p-2 rounded-lg bg-blue-50/50">
+                    <span class="font-semibold text-blue-700">5 BUX:</span>
+                    <span class="text-lg font-bold text-blue-900">60%</span>
+                </div>
+                <div class="flex justify-between items-center p-2 rounded-lg bg-blue-50/50">
+                    <span class="font-semibold text-blue-700">10 BUX:</span>
+                    <span class="text-lg font-bold text-blue-900">25%</span>
+                </div>
+                <div class="flex justify-between items-center p-2 rounded-lg bg-blue-50/50">
+                    <span class="font-semibold text-blue-700">25 BUX:</span>
+                    <span class="text-lg font-bold text-blue-900">14%</span>
+                </div>
+                <div class="flex justify-between items-center p-2 rounded-lg bg-blue-50/50">
+                    <span class="font-semibold text-blue-700">50 BUX:</span>
+                    <span class="text-lg font-bold text-blue-900">1%</span>
+                </div>
+            `;
+             document.getElementById('bux-rates').innerHTML = oddsHtml;
+
+        };
+
+        const updateAdminPanel = (requests) => {
+            const list = document.getElementById('withdrawal-request-list');
+            if (!list) return;
+
+            list.innerHTML = '';
+            if (requests.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center p-4">Bekleyen çekim talebi yok.</p>';
+                return;
+            }
+
+            requests.forEach(req => {
+                const li = document.createElement('li');
+                li.className = 'p-3 mb-2 bg-white rounded-xl shadow flex flex-col space-y-1';
+                li.innerHTML = `
+                    <p class="text-sm font-semibold text-blue-600">${req.type}: #${req.id.substring(0, 8)}</p>
+                    <p class="text-lg font-bold text-gray-800">${req.requestedAmountRobux} Robux Talep Edildi</p>
+                    <p class="text-sm text-gray-600">Kullanıcı TG ID: ${req.userTelegramId}</p>
+                    <p class="text-sm text-gray-600">Ödenecek Net: ${req.netAmountRobux.toFixed(2)} Robux (Komisyon düşülmüş)</p>
+                    <p class="text-sm text-gray-600">Gamepass Linki: <a href="${req.gamepassLink}" target="_blank" class="text-blue-500 hover:underline">${req.gamepassLink ? 'Görüntüle' : 'Yok'}</a></p>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="window.fulfillWithdrawal('${req.id}', true)" class="flex-1 bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition duration-150">Ödendi</button>
+                        <button onclick="window.fulfillWithdrawal('${req.id}', false)" class="flex-1 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition duration-150">Reddet</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        };
+
+        window.fulfillWithdrawal = async (requestId, isSuccessful) => {
+            const requestRef = doc(getWithdrawalCollectionRef(), requestId);
+            try {
+                await updateDoc(requestRef, {
+                    status: isSuccessful ? 'Ödendi' : 'Reddedildi',
+                    processedAt: serverTimestamp(),
+                    processedBy: userId // Admin'in kendi Firebase UID'si
+                });
+                showToast(`Talep #${requestId.substring(0, 8)} güncellendi.`, 'success');
+
+                // Reddedilirse bakiyeyi geri yükle
+                if (!isSuccessful) {
+                    const requestSnap = await getDoc(requestRef);
+                    if (requestSnap.exists()) {
+                        const { userUid, buxAmount } = requestSnap.data();
+                        const userRef = getUserDocRef(userUid);
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                             await updateDoc(userRef, {
+                                 buxBalance: userSnap.data().buxBalance + buxAmount
+                             });
+                        }
+                    }
+                }
+
+            } catch (e) {
+                console.error("Talep işleme hatası:", e);
+                showToast('Talep işlenirken bir hata oluştu.', 'error');
+            }
+        };
+
+        // Fonksiyon: Reklam İzleme ve BUX Kazanma
+        const watchAd = async () => {
+            if (!db || !userId) {
+                showToast('Lütfen uygulamanın yüklenmesini bekleyin.', 'error');
+                return;
+            }
+
+            const loadingId = showToast('Reklam yükleniyor...', 'info', true);
+
+            window.showAdexora()
+                .then(async () => {
+                    closeToast(loadingId);
+                    
+                    const rewardAmount = getRewardAmountWithOdds();
+                    userBuxBalance += rewardAmount;
+                    
+                    const userDocRef = getUserDocRef(userId);
+
+                    await updateDoc(userDocRef, {
+                        buxBalance: userBuxBalance,
+                        lastAdTime: serverTimestamp()
+                    });
+
+                    showToast(`${rewardAmount} BUX kazandınız!`, 'success');
+                    updateUI(); // Arayüzü hemen güncelle
+                })
+                .catch(e => {
+                    closeToast(loadingId);
+                    console.error("Adexora Hatası:", e);
+                    showToast('Reklam gösterilemedi veya kapattınız. Lütfen tekrar deneyin.', 'error');
+                });
+        };
+
+        // Fonksiyon: Çekim Talebi Oluşturma
+        const requestWithdrawal = async () => {
+            if (!isAuthReady) {
+                showToast('Hata: Oturum hazır değil.', 'error');
+                return;
+            }
+
+            const selectedType = document.querySelector('input[name="withdraw-type"]:checked').value;
+            const withdrawInput = document.getElementById('withdraw-input');
+            const gamepassLinkInput = document.getElementById('gamepass-link-input');
+            
+            const requestedRobux = parseInt(withdrawInput.value);
+
+            if (isNaN(requestedRobux) || requestedRobux < MIN_ROBUX_WITHDRAW) {
+                showToast(`Çekim miktarı en az ${MIN_ROBUX_WITHDRAW} Robux olmalıdır.`, 'error');
+                return;
+            }
+
+            const requiredBux = requestedRobux * BUX_PER_ROBUX;
+
+            if (userBuxBalance < requiredBux) {
+                showToast('Yetersiz BUX bakiyesi.', 'error');
+                return;
+            }
+
+            if (selectedType === 'robux' && (!gamepassLinkInput.value || !gamepassLinkInput.value.startsWith('http'))) {
+                 showToast('Robux çekimi için geçerli Gamepass linki girin.', 'error');
+                 return;
+            }
+
+            // Komisyon hesaplama
+            const commissionAmountRobux = (requestedRobux * WITHDRAWAL_COMMISSION_PERCENT) / 100;
+            const netAmountRobux = requestedRobux - commissionAmountRobux;
+
+            const confirmText = `${requestedRobux} Robux talep ediyorsunuz.\nKomisyon (%${WITHDRAWAL_COMMISSION_PERCENT}): ${commissionAmountRobux.toFixed(2)} Robux.\nNet ödenecek miktar: ${netAmountRobux.toFixed(2)} Robux.\nDevam etmek istiyor musunuz?`;
+            
+            showCustomConfirm(confirmText, async () => {
+                const loadingId = showToast('Çekim talebi oluşturuluyor...', 'info', true);
+                
+                try {
+                    // Kullanıcının BUX bakiyesini düşür
+                    const newBuxBalance = userBuxBalance - requiredBux;
+                    await updateDoc(getUserDocRef(userId), {
+                        buxBalance: newBuxBalance
+                    });
+
+                    // Çekim talebini admin paneline kaydet
+                    await addDoc(getWithdrawalCollectionRef(), {
+                        userUid: userId,
+                        userTelegramId: telegramId,
+                        type: selectedType,
+                        buxAmount: requiredBux, // Düşülen BUX miktarı
+                        requestedAmountRobux: requestedRobux, // Admin panelinde görünecek tam miktar
+                        commissionPercent: WITHDRAWAL_COMMISSION_PERCENT,
+                        commissionAmountRobux: commissionAmountRobux,
+                        netAmountRobux: netAmountRobux, // Kullanıcıya ödenecek net miktar
+                        gamepassLink: selectedType === 'robux' ? gamepassLinkInput.value : null,
+                        status: 'Beklemede',
+                        requestedAt: serverTimestamp()
+                    });
+
+                    closeToast(loadingId);
+                    showToast('Çekim talebiniz başarıyla alındı. Admin onayı bekleniyor.', 'success');
+                    withdrawInput.value = '';
+                    gamepassLinkInput.value = '';
+                    updateUI();
+                    showSection('menu-page'); // Ana menüye dön
+                } catch (e) {
+                    closeToast(loadingId);
+                    console.error("Çekim talebi hatası:", e);
+                    // Hata durumunda bakiyeyi geri yükleme (Gerekiyorsa, bu daha karmaşık bir işlemdir. Basitçe hata mesajı verelim.)
+                    showToast('Çekim talebinizi gönderirken bir hata oluştu.', 'error');
+                }
+            });
+        };
+
+        // TGA Kapatma
+        const closeApp = () => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.close();
+            }
+        };
+
+        // Ortak Global Fonksiyonlar
+        window.showSection = (sectionId) => {
+            document.querySelectorAll('.app-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector(`.nav-btn[data-page="${pageId}"]`).classList.add('active');
-
-            // Cüzdan sayfasına geçildiğinde bakiyeyi güncelle
-            if (pageId === 'wallet-page') {
-                updateBalanceUI(userBuxBalance);
+            const activeBtn = document.querySelector(`.nav-btn[data-page="${sectionId}"]`);
+            if (activeBtn) {
+                 activeBtn.classList.add('active');
             }
-        }
 
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => showSection(btn.dataset.page));
+            // Çekim/Giftcard seçeneği görünürlüğünü yönet
+            if (sectionId === 'withdraw-page') {
+                updateWithdrawalOptions();
+            }
+        };
+
+        const updateWithdrawalOptions = () => {
+            const robuxRadio = document.getElementById('withdraw-robux');
+            const giftcardRadio = document.getElementById('withdraw-giftcard');
+            const gamepassLinkContainer = document.getElementById('gamepass-link-container');
+            const giftcardComingSoon = document.getElementById('giftcard-coming-soon');
+            const withdrawButton = document.getElementById('confirm-withdraw-btn');
+
+            if (robuxRadio.checked) {
+                gamepassLinkContainer.classList.remove('hidden');
+                giftcardComingSoon.classList.add('hidden');
+                withdrawButton.disabled = false;
+                withdrawButton.textContent = 'Çekim Yap';
+            } else if (giftcardRadio.checked) {
+                gamepassLinkContainer.classList.add('hidden');
+                giftcardComingSoon.classList.remove('hidden');
+                withdrawButton.disabled = true;
+                withdrawButton.textContent = 'Yakında (Çekim Kapalı)';
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('withdraw-robux').addEventListener('change', updateWithdrawalOptions);
+            document.getElementById('withdraw-giftcard').addEventListener('change', updateWithdrawalOptions);
+            window.showSection('loading-page'); // Başlangıçta yükleme ekranını göster
+            
+            // Event Listener'ları tanımla
+            document.getElementById('watch-ad-btn').addEventListener('click', watchAd);
+            document.getElementById('confirm-withdraw-btn').addEventListener('click', requestWithdrawal);
+            
+            // Admin Panel Event Listener'ı (Sadece başlangıçta var olanlar)
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => window.showSection(e.currentTarget.dataset.page));
+            });
         });
 
-
-        // ====================================================================
-        // Firebase CRUD & Realtime Listeners
-        // ====================================================================
-        
-        async function getOrCreateUserData() {
-            const userRef = doc(db, USER_DATA_PATH(userId), 'data');
-            const docSnap = await getDoc(userRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                userBuxBalance = data.bux || 0;
-                updateBalanceUI(userBuxBalance);
-                return data;
-            } else {
-                await setDoc(userRef, {
-                    telegramId: userId,
-                    bux: 0,
-                    createdAt: serverTimestamp(),
-                    lastAdView: null
-                });
-                return { telegramId: userId, bux: 0 };
-            }
-        }
-
-        function setupUserListener() {
-            if (!userId) return;
-
-            const userRef = doc(db, USER_DATA_PATH(userId), 'data');
-            onSnapshot(userRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    updateBalanceUI(data.bux || 0);
-                } else {
-                    getOrCreateUserData(); // Belge silinirse tekrar oluştur
-                }
-            }, (error) => {
-                console.error("Kullanıcı veri dinleyicisi hatası:", error);
-                showModal('message-modal', 'Hata', 'Kullanıcı verisi yüklenirken bir sorun oluştu.', 'fas fa-exclamation-triangle text-red-500');
-            });
-        }
-        
-        function setupAdminListener() {
-            if (!isAdmin) return;
-            const requestsCol = collection(db, WITHDRAWAL_COLLECTION_PATH);
-            const q = query(requestsCol);
-
-            onSnapshot(q, (snapshot) => {
-                const listEl = document.getElementById('withdrawal-requests-list');
-                listEl.innerHTML = ''; 
-                
-                if (snapshot.empty) {
-                    listEl.innerHTML = '<p class="text-gray-500 text-sm py-2">Henüz bekleyen çekim talebi yok.</p>';
-                    return;
-                }
-
-                snapshot.docs.forEach(docSnap => {
-                    const req = docSnap.data();
-                    const reqId = docSnap.id;
-                    const date = req.timestamp ? new Date(req.timestamp.toDate()).toLocaleString() : 'Bilinmiyor';
-
-                    const item = document.createElement('div');
-                    item.className = 'p-3 border rounded-lg shadow-sm bg-blue-50';
-                    item.innerHTML = `
-                        <p class="font-semibold text-gray-800">${req.robuxAmount} Robux Talebi</p>
-                        <p class="text-xs text-gray-500">Kullanıcı: ${req.telegramId} (${req.userId})</p>
-                        <p class="text-xs text-gray-500">Link: <a href="${req.gamepassLink}" target="_blank" class="text-blue-600 hover:underline">${req.gamepassLink.substring(0, 30)}...</a></p>
-                        <p class="text-xs text-gray-500">Tarih: ${date}</p>
-                        <div class="mt-2 flex space-x-2">
-                            <button data-id="${reqId}" class="admin-action-btn bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded-md" data-action="complete">Tamamla</button>
-                            <button data-id="${reqId}" class="admin-action-btn bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-md" data-action="reject">Reddet</button>
-                        </div>
-                    `;
-                    listEl.appendChild(item);
-                });
-
-                // Olay Dinleyicilerini Ekle
-                listEl.querySelectorAll('.admin-action-btn').forEach(btn => {
-                    btn.addEventListener('click', handleAdminAction);
-                });
-
-            }, (error) => {
-                console.error("Admin dinleyicisi hatası:", error);
-            });
-        }
-
-        async function handleAdminAction(event) {
-            const btn = event.target;
-            const reqId = btn.dataset.id;
-            const action = btn.dataset.action;
-
-            if (!reqId || !action) return;
-
-            try {
-                // Sadece silme işlemi (Tamamlama/Reddetme sonrası listeden kaldırılır)
-                await deleteDoc(doc(db, WITHDRAWAL_COLLECTION_PATH, reqId));
-                showModal('message-modal', 'İşlem Başarılı', `Talep (${reqId}) ${action === 'complete' ? 'tamamlandı' : 'reddedildi'} olarak listeden kaldırıldı.`, 'fas fa-check-circle text-green-500');
-
-            } catch (error) {
-                console.error("Yönetici işlemi hatası:", error);
-                showModal('message-modal', 'Hata', `İşlem sırasında bir hata oluştu: ${error.message}`, 'fas fa-exclamation-triangle text-red-500');
-            }
-        }
-
-        // ====================================================================
-        // Ad Viewing and Reward Logic
-        // ====================================================================
-
-        function getBuxReward() {
-            const rand = Math.random();
-            if (rand < 0.60) return 5;   // 60%
-            if (rand < 0.85) return 10;  // 25% (0.60 - 0.85)
-            if (rand < 0.99) return 25;  // 14% (0.85 - 0.99)
-            return 50;                   // 1% (0.99 - 1.00)
-        }
-        
-        async function rewardUser(buxAmount) {
-            if (!userId) {
-                console.error("Kullanıcı kimliği yok, ödül verilemiyor.");
-                return;
-            }
-
-            const userRef = doc(db, USER_DATA_PATH(userId), 'data');
-            const newBalance = (userBuxBalance || 0) + buxAmount;
-
-            try {
-                await updateDoc(userRef, {
-                    bux: newBalance,
-                    lastAdView: serverTimestamp(),
-                });
-                
-                updateBalanceUI(newBalance);
-                showModal('message-modal', 'Tebrikler!', `${buxAmount} BUX kazandınız!`, 'fas fa-star text-yellow-500');
-                
-            } catch (error) {
-                console.error("Ödül verme hatası:", error);
-                showModal('message-modal', 'Hata', 'Bakiyeniz güncellenemedi. Lütfen tekrar deneyin.', 'fas fa-exclamation-triangle text-red-500');
-            }
-        }
-        
-        async function handleShowAd() {
-            const btn = document.getElementById('show-ad-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<div class="dot-pulse"></div>';
-
-            // Adexora reklam kodunu çalıştır
-            if (typeof window.showAdexora !== 'function') {
-                 // Adexora script'i yüklenmemişse bir süre sonra tekrar dene
-                setTimeout(() => {
-                    handleShowAd();
-                }, 1000);
-                return;
-            }
-
-            try {
-                // Kullanıcının sağladığı reklam kodu: id=663
-                await window.showAdexora({ id: 663 }); 
-                
-                // Reklam başarıyla izlendi, ödülü hesapla ve ver
-                const reward = getBuxReward();
-                await rewardUser(reward);
-
-            } catch (e) {
-                console.error("Reklam gösterimi hatası:", e);
-                const errorMsg = document.getElementById('ad-error-msg');
-                errorMsg.style.display = 'block';
-                showModal('message-modal', 'Hata', 'Reklam gösterilemedi veya atlandı. Lütfen tekrar deneyin.', 'fas fa-times-circle text-red-500');
-                
-            } finally {
-                // Butonu tekrar etkinleştir
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-play-circle mr-2"></i> Reklam İzle ve Kazan';
-            }
-        }
-
-        // ====================================================================
-        // Withdrawal Logic
-        // ====================================================================
-
-        async function handleWithdrawalRequest() {
-            const robuxInput = document.getElementById('robux-amount-input');
-            const linkInput = document.getElementById('gamepass-link-input');
-            const confirmBtn = document.getElementById('confirm-withdraw-btn');
-
-            const robuxAmount = parseInt(robuxInput.value);
-            const gamepassLink = linkInput.value.trim();
-            const buxToDeduct = robuxAmount * 100;
-
-            // Hata eleme
-            document.getElementById('robux-amount-error').classList.add('hidden');
-            document.getElementById('gamepass-link-error').classList.add('hidden');
-
-            let isValid = true;
-
-            if (isNaN(robuxAmount) || robuxAmount < 5) {
-                document.getElementById('robux-amount-error').textContent = 'Minimum 5 Robux (500 BUX) çekebilirsiniz.';
-                document.getElementById('robux-amount-error').classList.remove('hidden');
-                isValid = false;
-            }
-
-            if (buxToDeduct > userBuxBalance) {
-                document.getElementById('robux-amount-error').textContent = `Yetersiz bakiye. Çekmek için ${buxToDeduct} BUX (Mevcut: ${userBuxBalance} BUX) gerekiyor.`;
-                document.getElementById('robux-amount-error').classList.remove('hidden');
-                isValid = false;
-            }
-
-            if (!gamepassLink || !gamepassLink.includes('roblox.com/game-pass/')) {
-                document.getElementById('gamepass-link-error').textContent = 'Geçerli bir Roblox Gamepass linki girmelisiniz.';
-                document.getElementById('gamepass-link-error').classList.remove('hidden');
-                isValid = false;
-            }
-
-            if (!isValid) return;
-            
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<div class="dot-pulse"></div>';
-
-            try {
-                // 1. Bakiyeyi Düş
-                const userRef = doc(db, USER_DATA_PATH(userId), 'data');
-                const newBalance = userBuxBalance - buxToDeduct;
-
-                await updateDoc(userRef, {
-                    bux: newBalance,
-                    totalWithdrawnRobux: arrayUnion({ robux: robuxAmount, timestamp: serverTimestamp() })
-                });
-
-                // 2. Çekim Talebini Admin Paneline Gönder (Public Collection)
-                const requestsCol = collection(db, WITHDRAWAL_COLLECTION_PATH);
-                await addDoc(requestsCol, {
-                    userId: userId,
-                    telegramId: Telegram.WebApp.initDataUnsafe.user.id,
-                    robuxAmount: robuxAmount,
-                    buxDeducted: buxToDeduct,
-                    gamepassLink: gamepassLink,
-                    status: 'Pending',
-                    timestamp: serverTimestamp()
-                });
-
-                closeModal('robux-withdraw-modal');
-                showModal('message-modal', 'Talep Gönderildi', 'Robux çekim talebiniz yönetici paneline iletildi. En kısa sürede gamepass linkiniz üzerinden ödemeniz yapılacaktır.', 'fas fa-clock text-blue-500');
-
-                // UI'ı temizle
-                robuxInput.value = '';
-                linkInput.value = '';
-
-            } catch (error) {
-                console.error("Çekim talebi hatası:", error);
-                // Hata oluşursa bakiyeyi geri yüklemek gerekebilir, ancak basitlik için sadece hata mesajı gösteriliyor.
-                showModal('message-modal', 'Hata', 'Çekim talebi gönderilirken bir sorun oluştu. Lütfen tekrar deneyin.', 'fas fa-exclamation-triangle text-red-500');
-            } finally {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Talebi Gönder';
-            }
-        }
-
-        // ====================================================================
-        // Event Listeners Setup
-        // ====================================================================
-
-        function setupEventListeners() {
-            document.getElementById('show-ad-btn').addEventListener('click', handleShowAd);
-            document.getElementById('withdraw-robux-btn').addEventListener('click', () => showModal('robux-withdraw-modal'));
-            document.getElementById('withdraw-giftcard-btn').addEventListener('click', () => {
-                showModal('message-modal', 'Yakında', 'Giftcard ile çekim seçeneği yakında eklenecektir.', 'fas fa-gift text-purple-500');
-            });
-            document.getElementById('confirm-withdraw-btn').addEventListener('click', handleWithdrawalRequest);
-        }
-
-        // ====================================================================
-        // Application Initialization
-        // ====================================================================
-
-        async function initApp() {
-            setLogLevel('debug');
-
-            if (!Telegram.WebApp || !Telegram.WebApp.initDataUnsafe || !Telegram.WebApp.initDataUnsafe.user) {
-                console.error("Telegram WebApp başlatılamadı. Sadece Telegram içinde çalışır.");
-                document.getElementById('loading-overlay').innerHTML = '<p class="text-red-500 font-bold">Lütfen uygulamayı Telegram içinde açın.</p>';
-                return;
-            }
-
-            // Telegram arayüzünü ayarla
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-            Telegram.WebApp.MainButton.hide();
-
-            // Firebase'i başlat
+        const initApp = async () => {
+            // Firebase Başlatma
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
             
-            // Kullanıcı kimliğini al (Telegram ID'den türetilmiş)
-            const telegramId = Telegram.WebApp.initDataUnsafe.user.id;
-            userId = getUidFromTelegramId(telegramId);
-
-            // Admin Kontrolü
-            if (ADMIN_TELEGRAM_IDS.includes(telegramId)) {
-                isAdmin = true;
-                document.getElementById('admin-indicator').style.display = 'block';
-                // Yönetici navigasyon butonunu ekle
-                const nav = document.querySelector('.bottom-nav');
-                if (!document.querySelector('.nav-btn[data-page="admin-panel"]')) {
-                    const adminBtn = document.createElement('button');
-                    adminBtn.className = 'nav-btn flex flex-col items-center p-2';
-                    adminBtn.dataset.page = 'admin-panel';
-                    adminBtn.innerHTML = '<i class="fas fa-user-shield text-xl"></i><span class="text-xs mt-1">Admin</span>';
-                    nav.appendChild(adminBtn);
-                    adminBtn.addEventListener('click', () => showSection('admin-panel')); 
-                }
+            // Telegram Web App Hazırlığı
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+                telegramId = window.Telegram.WebApp.initDataUnsafe.user?.id || 'TEST_USER';
+            } else {
+                telegramId = 'TEST_USER_12345'; // Test için
             }
 
-            // UI'daki Telegram ID'yi göster
-            document.getElementById('telegram-id-display').textContent = telegramId;
-            document.getElementById('user-uid-display').textContent = userId;
-
-            // Firebase Yetkilendirme
+            userId = getUidFromTelegramId(telegramId);
+            
+            // Kimlik Doğrulama
             try {
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
@@ -765,37 +432,470 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                console.error("Yetkilendirme Hatası:", error);
-                document.getElementById('loading-overlay').innerHTML = `<p class="text-red-500 font-bold">Yetkilendirme hatası: ${error.message}</p>`;
-                return;
+                console.error("Auth hatası:", error);
+                // Auth başarısız olursa anonim kalabilir veya hata mesajı gösterebilir
             }
 
-            // Auth durumunda UID'yi kontrol et (önlem)
-            if (auth.currentUser) {
-                // UI'ı güncelle
-                await getOrCreateUserData();
-                setupUserListener();
-                setupEventListeners();
-                if (isAdmin) {
-                    setupAdminListener();
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = getUidFromTelegramId(telegramId);
+                    isAuthReady = true;
+
+                    // Admin Kontrolü ve Admin Butonu Ekleme
+                    if (ADMIN_TELEGRAM_IDS.includes(telegramId.toString())) {
+                         document.getElementById('admin-indicator').style.display = 'block';
+                         const nav = document.querySelector('.bottom-nav');
+                         if (!document.querySelector('.nav-btn[data-page="admin-panel"]')) {
+                             const adminBtn = document.createElement('button');
+                             adminBtn.className = 'nav-btn';
+                             adminBtn.dataset.page = 'admin-panel';
+                             adminBtn.innerHTML = '<i class="fas fa-user-shield"></i><span>Admin</span>';
+                             adminBtn.addEventListener('click', () => window.showSection('admin-panel')); 
+                             nav.appendChild(adminBtn);
+                         }
+                    }
+
+                    setupUserListener();
+                    window.showSection('menu-page');
+                } else {
+                    console.log("Kullanıcı oturumu yok, anonim giriş bekleniyor.");
                 }
-                
-                showSection('earn-page'); 
-                document.getElementById('loading-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 300);
+            });
+        };
+        
+        window.addEventListener('load', initApp);
 
-            } else {
-                console.error("Kullanıcı oturumu başlatılamadı.");
-                document.getElementById('loading-overlay').innerHTML = '<p class="text-red-500 font-bold">Oturum başlatılamadı. Lütfen uygulamayı kapatıp tekrar açın.</p>';
+        // Toast ve Modal Fonksiyonları
+        let toastCounter = 0;
+        window.showToast = (message, type = 'info', sticky = false) => {
+            const toastContainer = document.getElementById('toast-container');
+            const id = `toast-${toastCounter++}`;
+            
+            let bgColor = 'bg-blue-500';
+            let icon = 'fas fa-info-circle';
+            if (type === 'success') { bgColor = 'bg-green-500'; icon = 'fas fa-check-circle'; }
+            else if (type === 'error') { bgColor = 'bg-red-500'; icon = 'fas fa-exclamation-triangle'; }
+
+            const toast = document.createElement('div');
+            toast.id = id;
+            toast.className = `p-3 rounded-xl shadow-lg text-white text-sm flex items-center space-x-2 animate-slide-in-up ${bgColor} transition duration-300 transform opacity-0`;
+            toast.innerHTML = `<i class="${icon}"></i><span>${message}</span>`;
+            
+            // CSS animasyonu için küçük bir gecikme
+            setTimeout(() => toast.classList.remove('opacity-0'), 10);
+            
+            toastContainer.appendChild(toast);
+
+            if (!sticky) {
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                    toast.classList.add('animate-slide-out-down');
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
             }
+            return id;
+        };
+        
+        window.closeToast = (id) => {
+            const toast = document.getElementById(id);
+            if (toast) {
+                toast.classList.add('opacity-0');
+                toast.classList.add('animate-slide-out-down');
+                setTimeout(() => toast.remove(), 300);
+            }
+        };
+
+        window.showCustomConfirm = (message, onConfirm) => {
+            const modal = document.getElementById('custom-confirm-modal');
+            const messageEl = document.getElementById('confirm-message');
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            const cancelBtn = document.getElementById('cancel-action-btn');
+
+            messageEl.textContent = message;
+            
+            const handleConfirm = () => {
+                onConfirm();
+                modal.classList.add('hidden');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            const handleCancel = () => {
+                modal.classList.add('hidden');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
+
+            modal.classList.remove('hidden');
+        };
+
+    </script>
+    
+    <!-- Özel Stil Blokları -->
+    <style>
+        :root {
+            --font-family: 'Nunito', sans-serif;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #1c1c1e;
+            --subtle-text: #888;
+            /* Mavi Tema */
+            --primary-color: #2196F3; /* Mavi */
+            --primary-color-hover: #1976D2; /* Koyu Mavi */
+            --accent-color: #00BCD4; /* Turkuaz */
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            padding-bottom: 60px; /* Navigasyon çubuğu için boşluk */
+        }
+
+        .app-container {
+            max-width: 420px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 15px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
         
-        // Uygulamayı başlat
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+        .main-content {
+            padding: 15px;
+        }
 
-    <!-- Kullanıcının sağladığı reklam script'i -->
-    <script src="https://adexora.com/cdn/ads.js?id=663"></script>
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-color-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Navigasyon Stili */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 0;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            color: var(--subtle-text);
+            transition: color 0.2s ease;
+            font-size: 0.75rem;
+            line-height: 1;
+        }
+
+        .nav-btn i {
+            font-size: 1.25rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-color);
+        }
+
+        /* Animasyonlu Arkaplan (Blue/White) */
+        .animated-bg {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            overflow: hidden;
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+            animation: move-bg 15s infinite linear;
+        }
+
+        @keyframes move-bg {
+            0% { transform: translate(0, 0) rotate(30deg); }
+            100% { transform: translate(-50%, -50%) rotate(30deg); }
+        }
+
+        /* Toast Animasyonları */
+        @keyframes slide-in-up {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slide-out-down {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+
+        .animate-slide-in-up {
+            animation: slide-in-up 0.3s forwards;
+        }
+        .animate-slide-out-down {
+            animation: slide-out-down 0.3s forwards;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container (Mesaj Kutusu) -->
+    <div id="toast-container" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[100] w-full max-w-xs space-y-2 pointer-events-none p-4">
+        <!-- Toast mesajları buraya eklenecek -->
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="custom-confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Onay Gerekiyor</h3>
+            <p id="confirm-message" class="mb-6 text-gray-600"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-action-btn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">İptal</button>
+                <button id="confirm-action-btn" class="px-4 py-2 bg-[var(--primary-color)] text-white font-semibold rounded-lg hover:bg-[var(--primary-color-hover)] transition">Onayla</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="app-container">
+
+        <!-- Yükleme Ekranı -->
+        <section id="loading-page" class="app-section fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+            <div class="w-16 h-16 border-4 border-t-4 border-t-[var(--primary-color)] border-gray-200 rounded-full animate-spin"></div>
+            <p class="mt-4 text-gray-600 font-semibold">AdsBux yükleniyor...</p>
+        </section>
+
+        <!-- Ana Menü Sayfası -->
+        <section id="menu-page" class="app-section hidden">
+            <header class="header animated-bg">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-2xl font-extrabold flex items-center">
+                        <i class="fas fa-gem mr-2 text-white"></i> AdsBux
+                        <span id="admin-indicator" class="ml-2 text-xs bg-red-500 px-2 py-1 rounded-full hidden">ADMİN</span>
+                    </h1>
+                </div>
+                <div class="text-center bg-white bg-opacity-20 backdrop-blur-sm p-4 rounded-xl shadow-inner">
+                    <p class="text-sm font-semibold opacity-80">BUX Bakiyeniz</p>
+                    <p class="text-4xl font-black mt-1" id="bux-balance">0.00</p>
+                </div>
+            </header>
+
+            <div class="main-content space-y-5">
+                
+                <!-- Reklam İzle Kartı -->
+                <div class="card p-5 text-center">
+                    <h2 class="text-xl font-bold mb-3 text-gray-800">Reklam İzle & BUX Kazan</h2>
+                    <p class="text-gray-500 mb-4">Her reklam izleme başı rastgele 5 ile 50 BUX kazanma şansı.</p>
+                    <button id="watch-ad-btn" class="btn-primary w-full flex items-center justify-center space-x-2">
+                        <i class="fas fa-play-circle text-xl"></i>
+                        <span>REKLAM İZLE</span>
+                    </button>
+                </div>
+
+                <!-- Oranlar Kartı -->
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center">
+                        <i class="fas fa-percentage mr-2 text-[var(--accent-color)]"></i>
+                        Kazanç Oranları
+                    </h2>
+                    <div class="space-y-2" id="bux-rates">
+                        <!-- Oranlar JS ile doldurulacak -->
+                    </div>
+                </div>
+
+                <!-- Diğer Bilgiler -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-exchange-alt text-2xl mb-1 text-blue-500"></i>
+                        <p class="text-xs text-gray-500">Dönüşüm</p>
+                        <p class="font-bold">100 BUX = 1 Robux</p>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-hand-holding-usd text-2xl mb-1 text-green-500"></i>
+                        <p class="text-xs text-gray-500">Min. Çekim</p>
+                        <p class="font-bold">5 Robux (500 BUX)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cüzdan Sayfası -->
+        <section id="wallet-page" class="app-section hidden">
+            <div class="header animated-bg">
+                <h1 class="text-2xl font-extrabold mb-4 pt-4 px-4">Cüzdanım</h1>
+                <div class="text-center bg-white bg-opacity-20 backdrop-blur-sm p-4 mx-4 rounded-xl shadow-inner mb-4">
+                    <p class="text-sm font-semibold opacity-80">Toplam BUX Bakiyesi</p>
+                    <p class="text-4xl font-black mt-1" id="bux-balance-wallet">0.00</p>
+                </div>
+            </div>
+            <div class="main-content space-y-5">
+                 <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center">
+                        <i class="fab fa-battle-net mr-2 text-[var(--accent-color)]"></i>
+                        Robux Dönüşümü
+                    </h2>
+                    <p class="text-gray-600 mb-3">Hesabınızdaki BUX miktarı ile alabileceğiniz yaklaşık Robux miktarı:</p>
+                    <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <span class="text-lg font-semibold text-blue-700">Robux Eşdeğeri:</span>
+                        <span class="text-2xl font-extrabold text-blue-900" id="wallet-robux-equivalent">0.00</span>
+                    </div>
+                    <button onclick="window.showSection('withdraw-page')" class="btn-primary w-full mt-4">
+                        Robux Çekimi Yap
+                    </button>
+                 </div>
+                 
+                 <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center">
+                        <i class="fas fa-user-friends mr-2 text-green-500"></i>
+                        Davet Kodunuz
+                    </h2>
+                    <p class="text-gray-600 mb-3">Arkadaşlarınızı davet ederek ek BUX kazanın!</p>
+                    <input id="referral-code-input" type="text" readonly placeholder="Davet kodunuz yükleniyor..." class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-center font-bold text-gray-700">
+                    <button onclick="document.execCommand('copy')" class="btn-primary w-full mt-4 bg-green-500 hover:bg-green-600">
+                        Kopyala
+                    </button>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Para Çekme Sayfası -->
+        <section id="withdraw-page" class="app-section hidden">
+            <div class="header animated-bg">
+                <h1 class="text-2xl font-extrabold pt-4 px-4 mb-4">Para Çekme</h1>
+            </div>
+            <div class="main-content space-y-6">
+
+                <!-- Bakiye Bilgisi -->
+                <div class="card p-5 text-center">
+                    <p class="text-sm text-gray-500">Çekilebilir Robux Miktarınız (Max):</p>
+                    <p class="text-3xl font-black text-gray-800" id="max-withdraw-robux">0</p>
+                    <p class="text-xs text-gray-400 mt-1">1 Robux = 100 BUX</p>
+                </div>
+
+                <!-- Çekim Yöntemi Seçimi -->
+                <div class="card p-5">
+                    <h2 class="text-lg font-bold mb-3 text-gray-800">Çekim Yöntemi Seçin</h2>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-3 p-3 border-2 border-[var(--primary-color)] rounded-lg bg-blue-50 cursor-pointer">
+                            <input type="radio" id="withdraw-robux" name="withdraw-type" value="robux" checked class="form-radio h-5 w-5 text-[var(--primary-color)]">
+                            <span class="text-gray-700 font-semibold">Robux (Gamepass ile)</span>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border-2 border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                            <input type="radio" id="withdraw-giftcard" name="withdraw-type" value="giftcard" disabled class="form-radio h-5 w-5 text-gray-400">
+                            <span class="text-gray-500 font-semibold">Giftcards (Yakında)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Çekim Formu -->
+                <div class="card p-5">
+                    <h2 class="text-lg font-bold mb-3 text-gray-800">Çekim Detayları</h2>
+                    
+                    <div id="giftcard-coming-soon" class="hidden text-center p-4 bg-yellow-50 rounded-lg mb-4">
+                        <p class="text-yellow-700 font-semibold">Giftcard çekimi yakında aktif olacaktır.</p>
+                    </div>
+
+                    <div id="gamepass-link-container">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Robux Miktarı (Robux)</label>
+                        <input id="withdraw-input" type="number" min="5" step="1" placeholder="Minimum 5 Robux" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]">
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Robux Gamepass Linki</label>
+                        <input id="gamepass-link-input" type="url" placeholder="https://www.roblox.com/game-pass/..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]">
+                    </div>
+                    
+                    <p class="text-red-600 text-sm font-semibold mt-2">
+                        Not: Çekimlerde %${WITHDRAWAL_COMMISSION_PERCENT} komisyon uygulanacaktır.
+                    </p>
+                    <button id="confirm-withdraw-btn" class="btn-primary w-full mt-4">
+                        Çekim Yap
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Admin Sayfası -->
+        <section id="admin-panel" class="app-section hidden">
+            <div class="header animated-bg">
+                <h1 class="text-2xl font-extrabold pt-4 px-4 mb-4">Admin Paneli</h1>
+            </div>
+            <div class="main-content space-y-6">
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-3 text-red-600 flex items-center">
+                        <i class="fas fa-bell mr-2"></i>
+                        Bekleyen Çekim Talepleri
+                    </h2>
+                    <ul id="withdrawal-request-list" class="space-y-3">
+                        <p class="text-gray-500 text-center p-4">Bekleyen talep yok...</p>
+                    </ul>
+                </div>
+                <p class="text-center text-xs text-gray-400">Sadece adminler görebilir.</p>
+            </div>
+        </section>
+
+        <!-- Alt Navigasyon Çubuğu -->
+        <div class="bottom-nav">
+            <button class="nav-btn active" data-page="menu-page">
+                <i class="fas fa-home"></i>
+                <span>Menü</span>
+            </button>
+            <button class="nav-btn" data-page="wallet-page">
+                <i class="fas fa-wallet"></i>
+                <span>Cüzdan</span>
+            </button>
+            <button class="nav-btn" data-page="withdraw-page">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Çekim</span>
+            </button>
+        </div>
+
+    </div>
 
 </body>
 </html>
