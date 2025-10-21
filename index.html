@@ -21,13 +21,14 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, addDoc, serverTimestamp, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // Firestore log seviyesini Debug olarak ayarlayın
         setLogLevel('Debug');
 
         // CANVAS Ortam Değişkenleri
+        // Firebase yapılandırması
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{"apiKey": "AIzaSyA4hyg3BbR--b5c_ig01yr_OblTZP4TsDE","authDomain": "adsbux-73efc.firebaseapp.com","databaseURL": "https://adsbux-73efc-default-rtdb.firebaseio.com","projectId": "adsbux-73efc","storageBucket": "adsbux-73efc.firebasestorage.app","messagingSenderId": "396593744688","appId": "1:396593744688:web:03d7020fa05c9296d396f5","measurementId": "G-SFXVSS6MRJ"}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'adsbux-default';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -43,36 +44,21 @@
         const BUX_PER_ROBUX = 100;
         const MIN_ROBUX_WITHDRAW = 5; // 5 Robux = 500 BUX
         const WITHDRAWAL_COMMISSION_PERCENT = 30;
-        const ADMIN_TELEGRAM_IDS = ['123456789', '987654321']; // Örnek Admin Telegram ID'leri. Gerçek ID'ler ile değiştirin.
+        // LÜTFEN BU KISMI GERÇEK TELEGRAM ID'LERİNİZLE DEĞİŞTİRİN (Tırnak içinde string olarak)
+        const ADMIN_TELEGRAM_IDS = ['TEST_USER_12345']; // Örnek Admin Telegram ID'si (String olmalı)
 
-        // Mavi/Beyaz Tema CSS Ayarları
-        document.documentElement.style.setProperty('--primary-color', '#2196F3');
-        document.documentElement.style.setProperty('--primary-color-hover', '#1976D2');
-        document.documentElement.style.setProperty('--accent-color', '#00BCD4');
-
-        // Fonksiyon: Telegram ID'den benzersiz User ID üretimi (Firebase'de kullanılacak)
+        // Fonksiyon: Telegram ID'den benzersiz User ID üretimi
         const getUidFromTelegramId = (tgId) => `tg_${tgId}`;
 
         // Fonksiyon: Belirtilen olasılıklara göre BUX ödülü hesaplama
-        const getRewardAmount = () => {
-            const rand = Math.random() * 100;
-            if (rand < 55) return 5;     // %55
-            if (rand < 55 + 25) return 10; // %25
-            if (rand < 55 + 25 + 14) return 25; // %14
-            if (rand < 55 + 25 + 14 + 5) return 50; // %5 (Hata düzeltildi: 5% olmalıydı, %1 olarak değil. Kullanıcının isteğine göre %1)
-            return 50; // Kalan %1 (eğer yukarıdaki %14 yerine %15 olsaydı)
-        };
-        // Kullanıcının %1 oranını tutturmak için daha hassas yapı
         const getRewardAmountWithOdds = () => {
+            // İstenilen oranlar: 5: %55, 10: %25, 25: %14, 50: %1 (Toplam %95 yapar).
+            // Geri kalan %5'i 5 BUX'a ekleyerek toplamı %100 yapıyorum.
             const odds = [
-                { amount: 5, chance: 55 },
+                { amount: 5, chance: 60 }, // %55 + %5 (kalan)
                 { amount: 10, chance: 25 },
                 { amount: 25, chance: 14 },
-                { amount: 50, chance: 6 } // Toplam %100 olması için bu kısmı 6% yaptım (55+25+14=94, kalan 6% olmalı)
-                // NOT: Eğer kullanıcı 50 BUX'u %1 istiyorsa ve toplamı %100 yapmak gerekiyorsa:
-                // 5: 55%, 10: 25%, 25: 14%, 50: 1% (Toplam %95 yapar). Kalan %5'i 5 BUX'a ekledim.
-                // const odds = [ { amount: 5, chance: 60 }, { amount: 10, chance: 25 }, { amount: 25, chance: 14 }, { amount: 50, chance: 1 } ];
-                // ANCAK: Kullanıcı 50 BUX için %1 istiyor, ben de buna uyarak en yakın %100 toplamını oluşturuyorum.
+                { amount: 50, chance: 1 }
             ];
 
             const totalWeight = odds.reduce((sum, item) => sum + item.chance, 0);
@@ -84,11 +70,12 @@
                 }
                 random -= item.chance;
             }
-            return 5; // Varsayılan değer
+            return 5; // Varsayılan değer (asla çalışmamalı)
         };
         
         // Firestore Yolunu Oluşturma
         const getUserDocRef = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'data', 'profile');
+        // Admin paneli için public collection (herkes okuyup yazabilir kuralı ile güvende)
         const getWithdrawalCollectionRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'withdrawals');
 
         // Kullanıcı Verilerini Dinleme
@@ -103,7 +90,7 @@
                     userBuxBalance = data.buxBalance || 0;
                 } else {
                     userBuxBalance = 0;
-                    // Yeni kullanıcı oluştur
+                    // Yeni kullanıcı oluşturma
                     setDoc(userDocRef, {
                         telegramId: telegramId,
                         buxBalance: 0,
@@ -119,15 +106,18 @@
             });
 
             // Admin panelini dinleme (Eğer admin ise)
-            if (ADMIN_TELEGRAM_IDS.includes(telegramId)) {
+            if (ADMIN_TELEGRAM_IDS.includes(telegramId.toString())) {
                 setupAdminListener();
             }
         };
 
+        // ADMIN PANELİ İŞLEVSELLİĞİ
         const setupAdminListener = () => {
              if (!db) return;
 
+             // Sadece "Beklemede" statüsündeki talepleri getir
              const withdrawalsQuery = query(getWithdrawalCollectionRef(), where('status', '==', 'Beklemede'));
+             
              onSnapshot(withdrawalsQuery, (snapshot) => {
                  const requests = [];
                  snapshot.forEach(doc => {
@@ -136,22 +126,78 @@
                  updateAdminPanel(requests);
              }, (error) => {
                  console.error("Admin panel dinleme hatası:", error);
+                 showToast('Admin verileri yüklenemedi.', 'error');
              });
         };
+
+        window.fulfillWithdrawal = async (requestId, isSuccessful) => {
+            const requestRef = doc(getWithdrawalCollectionRef(), requestId);
+            
+            try {
+                // İşlemi Transaction içinde yapıyoruz ki bakiye geri yükleme güvenli olsun
+                await runTransaction(db, async (transaction) => {
+                    const requestSnap = await transaction.get(requestRef);
+                    if (!requestSnap.exists()) {
+                        throw new Error("Talep bulunamadı!");
+                    }
+                    
+                    const requestData = requestSnap.data();
+                    if (requestData.status !== 'Beklemede') {
+                        throw new Error("Talep zaten işlenmiş.");
+                    }
+
+                    // Talebi güncelle
+                    transaction.update(requestRef, {
+                        status: isSuccessful ? 'Ödendi' : 'Reddedildi',
+                        processedAt: serverTimestamp(),
+                        processedBy: userId
+                    });
+
+                    // Reddedilirse (isSuccessful === false) bakiyeyi geri yükle
+                    if (!isSuccessful) {
+                        const userRef = getUserDocRef(requestData.userUid);
+                        const userSnap = await transaction.get(userRef);
+                        
+                        if (userSnap.exists()) {
+                             const currentBalance = userSnap.data().buxBalance || 0;
+                             const buxToReturn = requestData.buxAmount;
+                             
+                             transaction.update(userRef, {
+                                 buxBalance: currentBalance + buxToReturn
+                             });
+                             showToast(`Talep reddedildi. ${buxToReturn} BUX kullanıcıya iade edildi.`, 'info');
+                        }
+                    }
+                });
+                
+                if (isSuccessful) {
+                    showToast(`Talep #${requestId.substring(0, 8)} başarıyla ÖDENDİ olarak işaretlendi.`, 'success');
+                }
+
+            } catch (e) {
+                console.error("Talep işleme hatası:", e);
+                showToast(`Talep işlenirken bir hata oluştu: ${e.message}`, 'error');
+            }
+        };
+        // END ADMIN PANELİ İŞLEVSELLİĞİ
+
 
         // UI Güncelleme Fonksiyonu
         const updateUI = () => {
             document.getElementById('bux-balance').textContent = userBuxBalance.toFixed(2);
+            document.getElementById('bux-balance-wallet').textContent = userBuxBalance.toFixed(2);
             
             // Wallet dönüşümünü güncelle
-            const robuxEquivalent = (userBuxBalance / BUX_PER_ROBUX).toFixed(2);
-            document.getElementById('wallet-robux-equivalent').textContent = robuxEquivalent;
+            const robuxEquivalent = (userBuxBalance / BUX_PER_ROBUX);
+            document.getElementById('wallet-robux-equivalent').textContent = robuxEquivalent.toFixed(2);
 
             // Çekim sayfasını güncelle
-            const withdrawRobuxAmount = Math.floor(userBuxBalance / BUX_PER_ROBUX);
-            document.getElementById('current-withdraw-robux').textContent = withdrawRobuxAmount;
-            document.getElementById('withdraw-input').placeholder = `Minimum ${MIN_ROBUX_WITHDRAW} Robux`;
-            document.getElementById('max-withdraw-robux').textContent = withdrawRobuxAmount;
+            const maxWithdrawRobuxAmount = Math.floor(userBuxBalance / BUX_PER_ROBUX);
+            document.getElementById('max-withdraw-robux').textContent = maxWithdrawRobuxAmount;
+            document.getElementById('withdraw-input').placeholder = `Min ${MIN_ROBUX_WITHDRAW} Robux - Max ${maxWithdrawRobuxAmount} Robux`;
+            
+            // Çekim detaylarını güncelle
+            updateWithdrawalDetails();
 
             // Anasayfa oranları
             const oddsHtml = `
@@ -173,7 +219,6 @@
                 </div>
             `;
              document.getElementById('bux-rates').innerHTML = oddsHtml;
-
         };
 
         const updateAdminPanel = (requests) => {
@@ -188,56 +233,60 @@
 
             requests.forEach(req => {
                 const li = document.createElement('li');
-                li.className = 'p-3 mb-2 bg-white rounded-xl shadow flex flex-col space-y-1';
+                li.className = 'p-3 mb-2 bg-white rounded-xl shadow flex flex-col space-y-1 border-l-4 border-red-500';
                 li.innerHTML = `
-                    <p class="text-sm font-semibold text-blue-600">${req.type}: #${req.id.substring(0, 8)}</p>
+                    <p class="text-xs font-semibold text-red-600">TALEP ID: #${req.id.substring(0, 8)}</p>
                     <p class="text-lg font-bold text-gray-800">${req.requestedAmountRobux} Robux Talep Edildi</p>
                     <p class="text-sm text-gray-600">Kullanıcı TG ID: ${req.userTelegramId}</p>
-                    <p class="text-sm text-gray-600">Ödenecek Net: ${req.netAmountRobux.toFixed(2)} Robux (Komisyon düşülmüş)</p>
-                    <p class="text-sm text-gray-600">Gamepass Linki: <a href="${req.gamepassLink}" target="_blank" class="text-blue-500 hover:underline">${req.gamepassLink ? 'Görüntüle' : 'Yok'}</a></p>
+                    <p class="text-sm text-green-600 font-bold">Ödenecek Net: ${req.netAmountRobux.toFixed(2)} Robux</p>
+                    <p class="text-sm text-gray-600 break-all">Gamepass Linki: <a href="${req.gamepassLink}" target="_blank" class="text-blue-500 hover:underline">Görüntüle</a></p>
+                    <p class="text-xs text-gray-400">Düşülen BUX: ${req.buxAmount} | Komisyon: ${req.commissionAmountRobux.toFixed(2)} Robux</p>
                     <div class="flex space-x-2 mt-2">
-                        <button onclick="window.fulfillWithdrawal('${req.id}', true)" class="flex-1 bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition duration-150">Ödendi</button>
-                        <button onclick="window.fulfillWithdrawal('${req.id}', false)" class="flex-1 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition duration-150">Reddet</button>
+                        <button onclick="window.fulfillWithdrawal('${req.id}', true)" class="flex-1 bg-green-500 text-white p-2 rounded-lg text-sm hover:bg-green-600 transition duration-150">Ödendi İşaretle</button>
+                        <button onclick="window.fulfillWithdrawal('${req.id}', false)" class="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm hover:bg-red-600 transition duration-150">Reddet (BUX İade)</button>
                     </div>
                 `;
                 list.appendChild(li);
             });
         };
 
-        window.fulfillWithdrawal = async (requestId, isSuccessful) => {
-            const requestRef = doc(getWithdrawalCollectionRef(), requestId);
-            try {
-                await updateDoc(requestRef, {
-                    status: isSuccessful ? 'Ödendi' : 'Reddedildi',
-                    processedAt: serverTimestamp(),
-                    processedBy: userId // Admin'in kendi Firebase UID'si
-                });
-                showToast(`Talep #${requestId.substring(0, 8)} güncellendi.`, 'success');
-
-                // Reddedilirse bakiyeyi geri yükle
-                if (!isSuccessful) {
-                    const requestSnap = await getDoc(requestRef);
-                    if (requestSnap.exists()) {
-                        const { userUid, buxAmount } = requestSnap.data();
-                        const userRef = getUserDocRef(userUid);
-                        const userSnap = await getDoc(userRef);
-                        if (userSnap.exists()) {
-                             await updateDoc(userRef, {
-                                 buxBalance: userSnap.data().buxBalance + buxAmount
-                             });
-                        }
-                    }
+        // KOMİSYON HESAPLAMA VE GÖRSELLEŞTİRME
+        const updateWithdrawalDetails = () => {
+            const robuxInput = document.getElementById('withdraw-input');
+            const maxRobux = Math.floor(userBuxBalance / BUX_PER_ROBUX);
+            const requestedRobux = parseInt(robuxInput.value) || 0;
+            const withdrawBtn = document.getElementById('confirm-withdraw-btn');
+            
+            let commissionAmountRobux = 0;
+            let netAmountRobux = 0;
+            
+            if (requestedRobux < MIN_ROBUX_WITHDRAW || requestedRobux > maxRobux || isNaN(requestedRobux)) {
+                // Hata durumu
+                withdrawBtn.disabled = true;
+                if (requestedRobux < MIN_ROBUX_WITHDRAW && requestedRobux > 0) {
+                     document.getElementById('withdraw-error').textContent = `Minimum çekim ${MIN_ROBUX_WITHDRAW} Robux'tur.`;
+                } else if (requestedRobux > maxRobux) {
+                     document.getElementById('withdraw-error').textContent = `Maksimum çekim bakiyeniz: ${maxRobux} Robux.`;
+                } else {
+                     document.getElementById('withdraw-error').textContent = '';
                 }
-
-            } catch (e) {
-                console.error("Talep işleme hatası:", e);
-                showToast('Talep işlenirken bir hata oluştu.', 'error');
+            } else {
+                // Başarılı hesaplama
+                commissionAmountRobux = (requestedRobux * WITHDRAWAL_COMMISSION_PERCENT) / 100;
+                netAmountRobux = requestedRobux - commissionAmountRobux;
+                withdrawBtn.disabled = false;
+                document.getElementById('withdraw-error').textContent = '';
             }
+            
+            document.getElementById('commission-display').textContent = `${commissionAmountRobux.toFixed(2)} Robux`;
+            document.getElementById('net-robux-display').textContent = `${netAmountRobux.toFixed(2)} Robux`;
         };
+        // END KOMİSYON HESAPLAMA
+
 
         // Fonksiyon: Reklam İzleme ve BUX Kazanma
         const watchAd = async () => {
-            if (!db || !userId) {
+            if (!db || !userId || !isAuthReady) {
                 showToast('Lütfen uygulamanın yüklenmesini bekleyin.', 'error');
                 return;
             }
@@ -249,16 +298,23 @@
                     closeToast(loadingId);
                     
                     const rewardAmount = getRewardAmountWithOdds();
-                    userBuxBalance += rewardAmount;
-                    
                     const userDocRef = getUserDocRef(userId);
 
-                    await updateDoc(userDocRef, {
-                        buxBalance: userBuxBalance,
-                        lastAdTime: serverTimestamp()
+                    // Transaction ile güvenli bakiye güncelleme
+                    await runTransaction(db, async (transaction) => {
+                        const userDoc = await transaction.get(userDocRef);
+                        const currentBalance = userDoc.data().buxBalance || 0;
+                        const newBalance = currentBalance + rewardAmount;
+                        
+                        transaction.update(userDocRef, {
+                            buxBalance: newBalance,
+                            lastAdTime: serverTimestamp()
+                        });
+                        userBuxBalance = newBalance; // Yerel değişkeni güncelle
                     });
 
-                    showToast(`${rewardAmount} BUX kazandınız!`, 'success');
+                    // Başarılı ödül mesajı (İstenilen düzeltme)
+                    showToast(`Tebrikler! Reklam izlediğiniz için ${rewardAmount} BUX kazandınız!`, 'success');
                     updateUI(); // Arayüzü hemen güncelle
                 })
                 .catch(e => {
@@ -280,21 +336,21 @@
             const gamepassLinkInput = document.getElementById('gamepass-link-input');
             
             const requestedRobux = parseInt(withdrawInput.value);
+            const maxRobux = Math.floor(userBuxBalance / BUX_PER_ROBUX);
 
-            if (isNaN(requestedRobux) || requestedRobux < MIN_ROBUX_WITHDRAW) {
-                showToast(`Çekim miktarı en az ${MIN_ROBUX_WITHDRAW} Robux olmalıdır.`, 'error');
+            if (isNaN(requestedRobux) || requestedRobux < MIN_ROBUX_WITHDRAW || requestedRobux > maxRobux) {
+                showToast('Geçersiz veya yetersiz Robux miktarı.', 'error');
                 return;
             }
 
             const requiredBux = requestedRobux * BUX_PER_ROBUX;
 
-            if (userBuxBalance < requiredBux) {
-                showToast('Yetersiz BUX bakiyesi.', 'error');
-                return;
-            }
-
             if (selectedType === 'robux' && (!gamepassLinkInput.value || !gamepassLinkInput.value.startsWith('http'))) {
                  showToast('Robux çekimi için geçerli Gamepass linki girin.', 'error');
+                 return;
+            }
+            if (selectedType === 'giftcard') {
+                 showToast('Giftcard çekimleri şu an için aktif değildir.', 'error');
                  return;
             }
 
@@ -308,25 +364,36 @@
                 const loadingId = showToast('Çekim talebi oluşturuluyor...', 'info', true);
                 
                 try {
-                    // Kullanıcının BUX bakiyesini düşür
-                    const newBuxBalance = userBuxBalance - requiredBux;
-                    await updateDoc(getUserDocRef(userId), {
-                        buxBalance: newBuxBalance
-                    });
+                    await runTransaction(db, async (transaction) => {
+                        const userDocRef = getUserDocRef(userId);
+                        const userDoc = await transaction.get(userDocRef);
+                        const currentBalance = userDoc.data().buxBalance || 0;
 
-                    // Çekim talebini admin paneline kaydet
-                    await addDoc(getWithdrawalCollectionRef(), {
-                        userUid: userId,
-                        userTelegramId: telegramId,
-                        type: selectedType,
-                        buxAmount: requiredBux, // Düşülen BUX miktarı
-                        requestedAmountRobux: requestedRobux, // Admin panelinde görünecek tam miktar
-                        commissionPercent: WITHDRAWAL_COMMISSION_PERCENT,
-                        commissionAmountRobux: commissionAmountRobux,
-                        netAmountRobux: netAmountRobux, // Kullanıcıya ödenecek net miktar
-                        gamepassLink: selectedType === 'robux' ? gamepassLinkInput.value : null,
-                        status: 'Beklemede',
-                        requestedAt: serverTimestamp()
+                        if (currentBalance < requiredBux) {
+                            throw new Error("Yetersiz BUX bakiyesi.");
+                        }
+
+                        // 1. Kullanıcının BUX bakiyesini düşür
+                        const newBuxBalance = currentBalance - requiredBux;
+                        transaction.update(userDocRef, {
+                            buxBalance: newBuxBalance
+                        });
+                        userBuxBalance = newBuxBalance; // Yerel değişkeni güncelle
+
+                        // 2. Çekim talebini admin paneline kaydet
+                        transaction.set(doc(getWithdrawalCollectionRef()), {
+                            userUid: userId,
+                            userTelegramId: telegramId,
+                            type: selectedType,
+                            buxAmount: requiredBux, // Düşülen BUX miktarı (geri iade için gerekli)
+                            requestedAmountRobux: requestedRobux, // Admin panelinde görünecek tam miktar
+                            commissionPercent: WITHDRAWAL_COMMISSION_PERCENT,
+                            commissionAmountRobux: commissionAmountRobux,
+                            netAmountRobux: netAmountRobux, // Kullanıcıya ödenecek net miktar
+                            gamepassLink: selectedType === 'robux' ? gamepassLinkInput.value : null,
+                            status: 'Beklemede',
+                            requestedAt: serverTimestamp()
+                        });
                     });
 
                     closeToast(loadingId);
@@ -334,21 +401,13 @@
                     withdrawInput.value = '';
                     gamepassLinkInput.value = '';
                     updateUI();
-                    showSection('menu-page'); // Ana menüye dön
+                    window.showSection('menu-page'); // Ana menüye dön
                 } catch (e) {
                     closeToast(loadingId);
                     console.error("Çekim talebi hatası:", e);
-                    // Hata durumunda bakiyeyi geri yükleme (Gerekiyorsa, bu daha karmaşık bir işlemdir. Basitçe hata mesajı verelim.)
-                    showToast('Çekim talebinizi gönderirken bir hata oluştu.', 'error');
+                    showToast(`Çekim talebi gönderilemedi: ${e.message}`, 'error');
                 }
             });
-        };
-
-        // TGA Kapatma
-        const closeApp = () => {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.close();
-            }
         };
 
         // Ortak Global Fonksiyonlar
@@ -365,10 +424,9 @@
             if (activeBtn) {
                  activeBtn.classList.add('active');
             }
-
-            // Çekim/Giftcard seçeneği görünürlüğünü yönet
             if (sectionId === 'withdraw-page') {
                 updateWithdrawalOptions();
+                updateWithdrawalDetails(); // Sayfa açıldığında hesaplamayı yap
             }
         };
 
@@ -390,18 +448,20 @@
                 withdrawButton.disabled = true;
                 withdrawButton.textContent = 'Yakında (Çekim Kapalı)';
             }
+            updateWithdrawalDetails(); // Seçenek değiştiğinde hesaplamayı yeniden yap
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('withdraw-robux').addEventListener('change', updateWithdrawalOptions);
             document.getElementById('withdraw-giftcard').addEventListener('change', updateWithdrawalOptions);
+            document.getElementById('withdraw-input').addEventListener('input', updateWithdrawalDetails); // Anlık komisyon hesaplama
+            
             window.showSection('loading-page'); // Başlangıçta yükleme ekranını göster
             
             // Event Listener'ları tanımla
             document.getElementById('watch-ad-btn').addEventListener('click', watchAd);
             document.getElementById('confirm-withdraw-btn').addEventListener('click', requestWithdrawal);
             
-            // Admin Panel Event Listener'ı (Sadece başlangıçta var olanlar)
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => window.showSection(e.currentTarget.dataset.page));
             });
@@ -417,7 +477,9 @@
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.ready();
                 window.Telegram.WebApp.expand();
-                telegramId = window.Telegram.WebApp.initDataUnsafe.user?.id || 'TEST_USER';
+                // Telegram ID'yi güvenli bir şekilde al, yoksa test kullanıcısı ata
+                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+                telegramId = tgUser?.id ? tgUser.id.toString() : 'TEST_USER_12345';
             } else {
                 telegramId = 'TEST_USER_12345'; // Test için
             }
@@ -438,13 +500,14 @@
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    userId = getUidFromTelegramId(telegramId);
+                    // Auth tamamlandı ve user nesnesi var
                     isAuthReady = true;
 
                     // Admin Kontrolü ve Admin Butonu Ekleme
-                    if (ADMIN_TELEGRAM_IDS.includes(telegramId.toString())) {
+                    if (ADMIN_TELEGRAM_IDS.includes(telegramId)) {
                          document.getElementById('admin-indicator').style.display = 'block';
                          const nav = document.querySelector('.bottom-nav');
+                         // Admin butonu zaten ekli değilse ekle
                          if (!document.querySelector('.nav-btn[data-page="admin-panel"]')) {
                              const adminBtn = document.createElement('button');
                              adminBtn.className = 'nav-btn';
@@ -475,13 +538,13 @@
             let icon = 'fas fa-info-circle';
             if (type === 'success') { bgColor = 'bg-green-500'; icon = 'fas fa-check-circle'; }
             else if (type === 'error') { bgColor = 'bg-red-500'; icon = 'fas fa-exclamation-triangle'; }
+            else if (type === 'warning') { bgColor = 'bg-yellow-500'; icon = 'fas fa-exclamation-circle'; }
 
             const toast = document.createElement('div');
             toast.id = id;
             toast.className = `p-3 rounded-xl shadow-lg text-white text-sm flex items-center space-x-2 animate-slide-in-up ${bgColor} transition duration-300 transform opacity-0`;
             toast.innerHTML = `<i class="${icon}"></i><span>${message}</span>`;
             
-            // CSS animasyonu için küçük bir gecikme
             setTimeout(() => toast.classList.remove('opacity-0'), 10);
             
             toastContainer.appendChild(toast);
@@ -513,21 +576,21 @@
 
             messageEl.textContent = message;
             
+            // Önceki event listener'ları kaldır
+            confirmBtn.onclick = null;
+            cancelBtn.onclick = null;
+
             const handleConfirm = () => {
                 onConfirm();
                 modal.classList.add('hidden');
-                confirmBtn.removeEventListener('click', handleConfirm);
-                cancelBtn.removeEventListener('click', handleCancel);
             };
 
             const handleCancel = () => {
                 modal.classList.add('hidden');
-                confirmBtn.removeEventListener('click', handleConfirm);
-                cancelBtn.removeEventListener('click', handleCancel);
             };
 
-            confirmBtn.addEventListener('click', handleConfirm);
-            cancelBtn.addEventListener('click', handleCancel);
+            confirmBtn.onclick = handleConfirm;
+            cancelBtn.onclick = handleCancel;
 
             modal.classList.remove('hidden');
         };
@@ -536,6 +599,7 @@
     
     <!-- Özel Stil Blokları -->
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
         :root {
             --font-family: 'Nunito', sans-serif;
             --bg-color: #f0f2f5;
@@ -554,7 +618,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow-x: hidden;
-            padding-bottom: 60px; /* Navigasyon çubuğu için boşluk */
+            padding-bottom: 70px; /* Navigasyon çubuğu için boşluk */
         }
 
         .app-container {
@@ -594,14 +658,15 @@
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background-color: var(--primary-color-hover);
             transform: translateY(-1px);
         }
-
-        .btn-primary:active {
-            transform: translateY(0);
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
+
 
         /* Navigasyon Stili */
         .bottom-nav {
@@ -628,7 +693,7 @@
             color: var(--subtle-text);
             transition: color 0.2s ease;
             font-size: 0.75rem;
-            line-height: 1;
+            line-height: 1.2;
         }
 
         .nav-btn i {
@@ -791,16 +856,14 @@
                     </button>
                  </div>
                  
+                 <!-- Telegram ID'yi göster -->
                  <div class="card p-5">
                     <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center">
-                        <i class="fas fa-user-friends mr-2 text-green-500"></i>
-                        Davet Kodunuz
+                        <i class="fas fa-id-badge mr-2 text-red-500"></i>
+                        Kullanıcı ID'niz (TG)
                     </h2>
-                    <p class="text-gray-600 mb-3">Arkadaşlarınızı davet ederek ek BUX kazanın!</p>
-                    <input id="referral-code-input" type="text" readonly placeholder="Davet kodunuz yükleniyor..." class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-center font-bold text-gray-700">
-                    <button onclick="document.execCommand('copy')" class="btn-primary w-full mt-4 bg-green-500 hover:bg-green-600">
-                        Kopyala
-                    </button>
+                    <p class="text-gray-600 mb-3">Bu ID, adminlerin size ödeme yapması için önemlidir.</p>
+                    <input id="referral-code-input" type="text" readonly :value="telegramId" placeholder="ID yükleniyor..." class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-center font-bold text-gray-700 text-sm">
                  </div>
             </div>
         </section>
@@ -814,9 +877,9 @@
 
                 <!-- Bakiye Bilgisi -->
                 <div class="card p-5 text-center">
-                    <p class="text-sm text-gray-500">Çekilebilir Robux Miktarınız (Max):</p>
+                    <p class="text-sm text-gray-500">Çekilebilir Maksimum Robux Miktarı:</p>
                     <p class="text-3xl font-black text-gray-800" id="max-withdraw-robux">0</p>
-                    <p class="text-xs text-gray-400 mt-1">1 Robux = 100 BUX</p>
+                    <p class="text-xs text-gray-400 mt-1">Min. Çekim: ${MIN_ROBUX_WITHDRAW} Robux</p>
                 </div>
 
                 <!-- Çekim Yöntemi Seçimi -->
@@ -844,16 +907,30 @@
 
                     <div id="gamepass-link-container">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Robux Miktarı (Robux)</label>
-                        <input id="withdraw-input" type="number" min="5" step="1" placeholder="Minimum 5 Robux" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]">
+                        <input id="withdraw-input" type="number" min="5" step="1" placeholder="Minimum 5 Robux" class="w-full p-3 border border-gray-300 rounded-lg mb-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]">
+                        <p id="withdraw-error" class="text-red-500 text-sm mb-4 font-medium h-4"></p>
+
+                        <!-- KOMİSYON GÖRÜNÜRLÜĞÜ -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Komisyon (%${WITHDRAWAL_COMMISSION_PERCENT}):</span>
+                                <span id="commission-display" class="font-semibold text-red-600">0.00 Robux</span>
+                            </div>
+                            <div class="flex justify-between text-lg font-bold border-t pt-2">
+                                <span>Net Ödenecek Miktar:</span>
+                                <span id="net-robux-display" class="text-green-600">0.00 Robux</span>
+                            </div>
+                        </div>
+                        <!-- /KOMİSYON GÖRÜNÜRLÜĞÜ -->
 
                         <label class="block text-sm font-medium text-gray-700 mb-1">Robux Gamepass Linki</label>
-                        <input id="gamepass-link-input" type="url" placeholder="https://www.roblox.com/game-pass/..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]">
+                        <input id="gamepass-link-input" type="url" placeholder="https://www.roblox.com/game-pass/..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]">
                     </div>
                     
-                    <p class="text-red-600 text-sm font-semibold mt-2">
-                        Not: Çekimlerde %${WITHDRAWAL_COMMISSION_PERCENT} komisyon uygulanacaktır.
+                    <p class="text-gray-500 text-xs mt-4">
+                        Çekim talepleri admin onayı ile Gamepass linki üzerinden gerçekleştirilecektir.
                     </p>
-                    <button id="confirm-withdraw-btn" class="btn-primary w-full mt-4">
+                    <button id="confirm-withdraw-btn" class="btn-primary w-full mt-4" disabled>
                         Çekim Yap
                     </button>
                 </div>
@@ -875,7 +952,7 @@
                         <p class="text-gray-500 text-center p-4">Bekleyen talep yok...</p>
                     </ul>
                 </div>
-                <p class="text-center text-xs text-gray-400">Sadece adminler görebilir.</p>
+                <p class="text-center text-xs text-gray-400">Sadece adminler bu paneli görebilir.</p>
             </div>
         </section>
 
